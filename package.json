@@ -1,0 +1,32 @@
+{
+  "name": "koishi-plugin-otp",
+  "description": "one time password",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "license": "MIT",
+  "scripts": {},
+  "koishi": {
+    "hidden": true,
+    "description": {
+      "zh_CN": "OTP 验证码服务",
+      "en_US": "the one time password service"
+    },
+    "service": {
+      "implements": ["otp"],
+      "required": ["database"]
+    }
+  },
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin"
+  ],
+  "peerDependencies": {
+    "koishi": "4.14.1"
+  }
+}
