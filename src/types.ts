@@ -8,8 +8,8 @@ export enum HMACAlgorithm {
 }
 
 export interface OTPConfig {
-  algorithm: HMACAlgorithm
-  digits: number
+  algorithm?: HMACAlgorithm
+  digits?: number
 }
 
 export interface TOTPConfig extends OTPConfig {

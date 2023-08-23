@@ -79,7 +79,7 @@ export function apply(ctx: Context, config: Config) {
     if (counter < 0) throw new Error('counter must be positive')
     if (counter > 10) throw new Error('counter must be less than 10')
 
-    const hmac = createHmac(algorithm, secret)
+    const hmac = createHmac(algorithm ?? 'sha1', secret)
     hmac.update(Buffer.from(counter.toString(16).padStart(16, '0'), 'hex'))
     const digest = hmac.digest()
     const offset = digest[digest.length - 1] & 0xf
@@ -88,7 +88,7 @@ export function apply(ctx: Context, config: Config) {
       | (digest[offset + 2] & 0xff) << 8
       | (digest[offset + 3] & 0xff)
 
-    return code % (10 ** digits)
+    return code % (10 ** digits ?? 6)
   }
 }
 
