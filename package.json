@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-otp",
   "description": "one time password",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -11,7 +11,6 @@
   "license": "MIT",
   "scripts": {},
   "koishi": {
-    "hidden": true,
     "description": {
       "zh_CN": "OTP 验证码服务",
       "en_US": "the one time password service"
@@ -27,6 +26,6 @@
     "plugin"
   ],
   "peerDependencies": {
-    "koishi": "4.14.1"
+    "koishi": "4.12.0"
   }
 }
