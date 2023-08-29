@@ -55,8 +55,10 @@ class OTPService extends Service {
     switch (tokenizer) {
       case 'uuid':
         token = this.crypto.randomUUID()
+        break
       case 'random':
         token = Math.random().toString(36).slice(2)
+        break
       case 'timestamp':
         token = Date.now().toString(36)
     }
@@ -95,7 +97,7 @@ class OTPService extends Service {
       | (digest[offset + 2] & 0xff) << 8
       | (digest[offset + 3] & 0xff)
 
-    return code % (10 ** digits ?? 6)
+    return code % (10 ** (digits ?? 6))
   }
 }
 
