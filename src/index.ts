@@ -1,71 +1,77 @@
-import { Context, Schema, Session } from 'koishi'
-import { HOTPConfig, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
-import { createHmac, randomUUID } from 'node:crypto'
+import { Context, Schema, Service, Session } from 'koishi'
+import { HMACAlgorithm, HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
+import OTPClent from './client'
+import { createHmac } from 'node:crypto'
+
+//@ts-ignore
+if (typeof global.crypto === 'undefined') globalThis.crypto = await import('crypto')
 
 declare module 'koishi' {
-  interface User {
-    otp_token: string
-    otp_step: number
-    otp_threshold: number
+
+  interface Tables {
+    otp: OTPDatabase
   }
+
   interface Context {
-    otp: <M extends OTPModule>(module: M, options: OTPOptions<M>, session?: Session<'otp_token' | 'otp_step' | 'otp_threshold'>) => Promise<number>
+    otp: OTPService
   }
 }
 
-export function createToken(tokenizer: Tokenizer, salt: string) {
-  let token: string
-  switch (tokenizer) {
-    case 'uuid':
-      token = randomUUID()
-    case 'random':
-      token = Math.random().toString(36).slice(2)
-    case 'timestamp':
-      token = Date.now().toString(36)
+class OTPService extends Service {
+  readonly using = ['database']
+
+  constructor(ctx: Context, private config: OTPService.Config) {
+    super(ctx, 'otp')
+    ctx.model.extend('otp', {
+      id: 'unsigned',
+      bid: 'unsigned',
+      token: 'text',
+      step: {
+        type: 'integer',
+        initial: config.maxStep
+      },
+      threshold: {
+        type: 'integer',
+        initial: config.maxThreshold
+      },
+      algorithm: 'string',
+      digits: 'integer',
+      counter: 'integer',
+      period: 'integer',
+      initial: 'integer',
+      created_at: 'date',
+      updated_at: 'date',
+    }, {
+      primary: ['id'],
+      unique: ['token'],
+    })
+
+    ctx.plugin(OTPClent, config)
   }
-  return Buffer.from(token + salt).toString('hex')
-}
 
-export const name = 'otp'
+  public createToken(tokenizer: Tokenizer, salt: string) {
+    let token: string
+    switch (tokenizer) {
+      case 'uuid':
+        token = crypto.randomUUID()
+      case 'random':
+        token = Math.random().toString(36).slice(2)
+      case 'timestamp':
+        token = Date.now().toString(36)
+    }
+    return Buffer.from(token + salt).toString('hex')
+  }
 
-export const usign = ['database']
-
-export const usage = `
-## 插件说明
-
-提供了一次性密码认证服务，支持 TOTP、HOTP 算法。
-
-最大步长在 TOTP 算法中表示每隔多少秒更新一次密码，HOTP 算法中表示每隔多少次更新一次密码。
-`
-
-export function apply(ctx: Context, config: Config) {
-  ctx.model.extend('user', {
-    otp_token: {
-      type: 'text',
-      initial: createToken(config.tokenizer, config.salt),
-    },
-    otp_step: {
-      type: 'integer',
-      initial: config.maxStep,
-    },
-    otp_threshold: {
-      type: 'integer',
-      initial: config.maxThreshold,
-    },
-  })
-
-  ctx.on('dispose', () => { })
-
-  ctx.otp = async (module, options, session?) => {
-    ctx.otp[Context.current]?.collect('otp', () => { })
+  protected async otp<M extends OTPModule>(
+    module: M,
+    options: OTPOptions<M>
+  ) {
     const { algorithm, digits } = options
     let { secret } = options
     let counter: number
 
     // check secret
-    if (!secret && !session) throw new Error('secret is required')
-    if (!secret && !session.user.otp_token) session.user.otp_token = createToken(config.tokenizer, config.salt)
-    if (!secret) secret = session.user!.otp_token
+    if (!secret) throw new Error('secret is required')
 
     if (module === 'totp') {
       const { period, initial } = options as TOTPConfig
@@ -90,28 +96,43 @@ export function apply(ctx: Context, config: Config) {
 
     return code % (10 ** digits ?? 6)
   }
+
+  public async server<M extends OTPModule>(
+    module: M,
+    options: OTPOptions<M>
+  ) {
+
+  }
 }
 
-export interface Config {
-  tokenizer: Tokenizer
-  salt: string
-  maxStep: number
-  maxThreshold: number
+namespace OTPService {
+  export const usage = `
+## 插件说明
+
+提供了一次性密码认证服务，支持 TOTP、HOTP 算法。
+
+最大步长在 TOTP 算法中表示每隔多少秒更新一次密码，HOTP 算法中表示每隔多少次更新一次密码。
+`
+
+  export interface Config {
+    tokenizer: Tokenizer
+    salt: string
+    maxStep: number
+    maxThreshold: number
+  }
+
+  export const Config: Schema<Config> = Schema.intersect([
+    Schema.object({
+      tokenizer: Schema.union<Tokenizer>([
+        'uuid',
+        'random',
+        'timestamp']).default('uuid').description('令牌生成方式'),
+      salt: Schema.string().description('令牌生成盐').required(),
+    }).description('基础配置'),
+    Schema.object({
+      maxStep: Schema.number().min(5).default(30).description('默认允许的最大步长'),
+      maxThreshold: Schema.number().min(3).max(10).default(5).description('默认允许的最大重试步数'),
+    }).description('安全性配置'),
+  ])
 }
 
-export const Config: Schema<Config> = Schema.intersect([
-  Schema.object({
-    tokenizer: Schema.union<Tokenizer>([
-      'uuid',
-      'random',
-      'timestamp']).default('uuid').description('令牌生成方式'),
-    salt: Schema.string().description('令牌生成盐').required(),
-  }).description('基础配置'),
-  Schema.object({
-    maxStep: Schema.number().min(5).default(30).description('默认允许的最大步长'),
-    maxThreshold: Schema.number().min(3).max(10).default(5).description('默认允许的最大重试步数'),
-  }).description('安全性配置'),
-])
-
-// install service
-Context.service('otp')
