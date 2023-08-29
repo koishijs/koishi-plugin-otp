@@ -1,6 +1,6 @@
 import { Context, Schema, Service } from 'koishi'
 import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
-import OTPClent from './client'
+import OTPClient from './client'
 import { createHmac } from 'node:crypto'
 
 declare module 'koishi' {
@@ -47,7 +47,7 @@ class OTPService extends Service {
       unique: ['token'],
     })
 
-    ctx.plugin(OTPClent, config)
+    ctx.plugin(OTPClient, config)
   }
 
   public createToken(tokenizer: Tokenizer, salt: string) {
