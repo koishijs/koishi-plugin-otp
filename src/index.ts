@@ -1,6 +1,6 @@
 import { Context, Schema, Service } from 'koishi'
 import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
-import OTPClent from './client'
+import OTPClient from './client'
 import { createHmac } from 'node:crypto'
 
 declare module 'koishi' {
@@ -47,7 +47,7 @@ class OTPService extends Service {
       unique: ['token'],
     })
 
-    ctx.plugin(OTPClent, config)
+    ctx.plugin(OTPClient, config)
   }
 
   public createToken(tokenizer: Tokenizer, salt: string) {
@@ -55,8 +55,10 @@ class OTPService extends Service {
     switch (tokenizer) {
       case 'uuid':
         token = this.crypto.randomUUID()
+        break
       case 'random':
         token = Math.random().toString(36).slice(2)
+        break
       case 'timestamp':
         token = Date.now().toString(36)
     }
@@ -95,7 +97,7 @@ class OTPService extends Service {
       | (digest[offset + 2] & 0xff) << 8
       | (digest[offset + 3] & 0xff)
 
-    return code % (10 ** digits ?? 6)
+    return code % (10 ** (digits ?? 6))
   }
 }
 
