@@ -21,10 +21,10 @@ import {} from 'koishi-plugin-otp'
 
 export const name = 'otp-example';
 
-export const usign = ['otp'];
+export const using = ['otp'];
 
 export function apply(ctx: Context) {
-  const vertify = (token: string, code: number) => ctx.otp('totp', {   
+  const verify = (token: string, code: number) => ctx.otp('totp', {
       secret: token,
       digits: 6,
       period: 30,
@@ -35,7 +35,7 @@ export function apply(ctx: Context) {
   ctx.command('foo', '一个需要验证 OTP 的指令')
     .action(async ({ session }) => {
       const code = await session.prompt('请输入一次性密码');
-      if (vertify(session.user!.otp_token, code)) {
+      if (verify(session.user!.otp_token, code)) {
         return '验证成功'
       } else {
         return '验证失败'
@@ -47,7 +47,7 @@ export function apply(ctx: Context) {
 
 ## 配置项
 
-- tokenizer (`random`、`uuid`、`timestamp`): 公共令牌生成方式，默认值：`uuid`。 
+- tokenizer (`random`、`uuid`、`timestamp`): 公共令牌生成方式，默认值：`uuid`。
 - maxStep (`number`): 最大步长，默认值：`30`。
 - maxThreshold (`number`): 最大重试阈值，默认值：`5`。
 
