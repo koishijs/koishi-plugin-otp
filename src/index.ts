@@ -3,8 +3,6 @@ import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer }
 import OTPClent from './client'
 import { createHmac } from 'node:crypto'
 
-if (typeof global.crypto === 'undefined') globalThis.crypto = require('node:crypto')
-
 declare module 'koishi' {
 
   interface Tables {
@@ -18,6 +16,8 @@ declare module 'koishi' {
 
 class OTPService extends Service {
   readonly using = ['database']
+
+  readonly crypto = globalThis.crypto ?? require('node:crypto')
 
   constructor(ctx: Context, private config: OTPService.Config) {
     super(ctx, 'otp')
@@ -54,7 +54,7 @@ class OTPService extends Service {
     let token: string
     switch (tokenizer) {
       case 'uuid':
-        token = crypto.randomUUID()
+        token = this.crypto.randomUUID()
       case 'random':
         token = Math.random().toString(36).slice(2)
       case 'timestamp':
