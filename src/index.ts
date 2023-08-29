@@ -1,10 +1,9 @@
-import { Context, Schema, Service, Session } from 'koishi'
-import { HMACAlgorithm, HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
+import { Context, Schema, Service } from 'koishi'
+import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
 import OTPClent from './client'
 import { createHmac } from 'node:crypto'
 
-//@ts-ignore
-if (typeof global.crypto === 'undefined') globalThis.crypto = await import('crypto')
+if (typeof global.crypto === 'undefined') globalThis.crypto = require('node:crypto')
 
 declare module 'koishi' {
 
@@ -95,13 +94,6 @@ class OTPService extends Service {
       | (digest[offset + 3] & 0xff)
 
     return code % (10 ** digits ?? 6)
-  }
-
-  public async server<M extends OTPModule>(
-    module: M,
-    options: OTPOptions<M>
-  ) {
-
   }
 }
 
