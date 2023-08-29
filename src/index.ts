@@ -2,6 +2,7 @@ import { Context, Schema, Service } from 'koishi'
 import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
 import OTPClient from './client'
 import { createHmac } from 'node:crypto'
+import { koishiPluginOTPCmd } from './commands'
 
 declare module 'koishi' {
 
@@ -14,7 +15,7 @@ declare module 'koishi' {
   }
 }
 
-class OTPService extends Service {
+export class OTPService extends Service {
   readonly using = ['database']
 
   readonly crypto = globalThis.crypto ?? require('node:crypto')
@@ -47,7 +48,8 @@ class OTPService extends Service {
       unique: ['token'],
     })
 
-    ctx.plugin(OTPClient, config)
+    // ctx.plugin(OTPClient, config)
+    ctx.plugin(koishiPluginOTPCmd, config)
   }
 
   public createToken(tokenizer: Tokenizer, salt: string) {
@@ -101,7 +103,7 @@ class OTPService extends Service {
   }
 }
 
-namespace OTPService {
+export namespace OTPService {
   export const usage = `
 ## 插件说明
 
