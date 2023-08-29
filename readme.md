@@ -53,7 +53,7 @@ yarn add koishi-plugin-otp -D
 
 可通过 `ctx.otp` 访问。
 
-#### `otp.verify(method: OTPMethod, options: OTPOptions)`
+#### `otp.generate(method: OTPMethod, options: OTPOptions)`
 
 - `method`: 认证算法，支持 `totp` 和 `hotp`。
 - `options`: 认证配置项，支持以下属性：
@@ -63,7 +63,7 @@ yarn add koishi-plugin-otp -D
   - `period`: 密码更新周期。
   - `step`: 最大步长。
 
-进行 OTP 认证。
+生成密码。
 
 #### `otp.createToken(tokenizer?: Tokenizer, salt?: string)`
 

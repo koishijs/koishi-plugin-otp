@@ -24,7 +24,9 @@ class OTPService extends Service {
     ctx.model.extend('otp', {
       id: 'unsigned',
       bid: 'unsigned',
+      name: 'string',
       token: 'text',
+      type: 'string', // totp | hotp
       step: {
         type: 'integer',
         initial: config.maxStep
@@ -61,7 +63,7 @@ class OTPService extends Service {
     return Buffer.from(token + salt).toString('hex')
   }
 
-  protected async otp<M extends OTPModule>(
+  public async generate<M extends OTPModule>(
     module: M,
     options: OTPOptions<M>
   ) {

@@ -3,6 +3,8 @@ export type Tokenizer = 'uuid' | 'random' | 'timestamp'
 export interface OTPDatabase {
   id: number
   bid: number
+  name: string
+  type: OTPModule
   token: string
   step: number
   threshold: number
