@@ -1,5 +1,19 @@
 export type Tokenizer = 'uuid' | 'random' | 'timestamp'
 
+export interface OTPDatabase {
+  id: number
+  bid: number
+  token: string
+  step: number
+  threshold: number
+  algorithm: HMACAlgorithm
+  digits: number
+  counter?: number
+  period?: number
+  initial?: number
+  created_at: Date
+  updated_at: Date
+}
 
 export enum HMACAlgorithm {
   SHA1 = 'sha1',
@@ -21,10 +35,10 @@ export interface HOTPConfig extends OTPConfig {
   counter: number
 }
 
-type ConfigMap = {
+type OTPMap = {
   totp: TOTPConfig
   hotp: HOTPConfig
 }
 
-export type OTPModule = keyof ConfigMap
-export type OTPOptions<M extends OTPModule> = { secret?: string } & ConfigMap[M] & OTPConfig
+export type OTPModule = keyof OTPMap
+export type OTPOptions<M extends OTPModule> = { secret?: string } & OTPMap[M] & OTPConfig
