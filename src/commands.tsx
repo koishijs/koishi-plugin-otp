@@ -1,4 +1,4 @@
-import { Channel, Command, Context, Session, User, Fragment } from 'koishi'
+import type { Channel, Command, Context, Session, User } from 'koishi'
 import { OTPService } from './index'
 import { OTPDatabase } from './types'
 
@@ -47,9 +47,13 @@ export function koishiPluginOTPCmd(ctx: Context, options: OTPService.Config) {
       const [name, token] = input.args
       const { public: _p, force } = input.options ?? {}
 
-      await save(ctx, input.session, mergeConfig(options, { bid, name, token, public: _p, force }))
+      const overwritten = await save(ctx, input.session, mergeConfig(options, { bid, name, token, public: _p, force }))
 
-      return <message>saved!</message>
+      return <message>
+        <i18n path="succeed-return-old-tokens">
+          {overwritten.map(row => <ReturnToken row={row}></ReturnToken>)}
+        </i18n>
+      </message>
     })
 
 
@@ -61,32 +65,10 @@ export function koishiPluginOTPCmd(ctx: Context, options: OTPService.Config) {
       const removed = await remove(ctx, input.session, { bid, name, public: input.options.public })
 
       return <message>
-        removed token(s):
-        {removed.map(rm => <text key={rm.id}>{JSON.stringify(rm)}</text>)}
+        <i18n path="removed-tokens" />
+        {removed.map(row => <ReturnToken row={row}></ReturnToken>)}
       </message>
     })
-}
-
-interface BaseQuery {
-  bid: number
-}
-
-interface Provided extends Pick<OTPDatabase, 'step' | 'threshold'>, Pick<OTPService.Config, 'salt' | 'tokenizer'> { }
-
-interface Name {
-  name: string
-}
-
-interface Token {
-  token: string
-}
-
-interface Force {
-  force: boolean
-}
-
-interface Public {
-  public: boolean
 }
 
 async function remove(ctx: Context, session: Session, query: BaseQuery & Name & Public) {
@@ -95,7 +77,7 @@ async function remove(ctx: Context, session: Session, query: BaseQuery & Name & 
 
   const rejectThisContext = rejectContext(session, query)
   switch (true) {
-    // no leak of holding a token
+    // no leaks
     case rejectThisContext: raise(Error, VariantError.NotInASafeContext)
     case !clashes.length: raise(Error, VariantError.FoundNoToken)
     // TODO check if correct data has been saved
@@ -106,21 +88,22 @@ async function remove(ctx: Context, session: Session, query: BaseQuery & Name & 
 
 async function save(ctx: Context, session: Session, query: Provided & BaseQuery & Name & Token & Force & Public) {
   const lockTime = Date.now()
-  const anyClashed = await getToken(ctx, query).then(ret => ret.length)
+  const clashed = await getToken(ctx, query)
   const { bid, name, token, salt, tokenizer, threshold, step } = query
 
   const rejectThisContext = rejectContext(session, query)
   switch (true) {
-    // no leak of holding a token
+    // no leaks
     case rejectThisContext: raise(Error, VariantError.NotInASafeContext)
     // safe context or with -p, will leak user holding a token now
-    case anyClashed && !rejectThisContext: raise(Error, VariantError.WillOverWriteOldToken)
+    case clashed && !rejectThisContext: raise(Error, VariantError.WillOverWriteOldToken)
     // force but in a group chat, insecure context w/o user explicitly tell us to return token
-    case anyClashed && query.force && session.type !== 'private': raise(Error, VariantError.NotInASafeContext)
+    case clashed && query.force && session.type !== 'private': raise(Error, VariantError.NotInASafeContext)
 
     // TODO check if correct data has been saved
-    default: await ctx.database.set('otp', { bid, name }, { step, threshold, name, token, updated_at: new Date(lockTime), created_at: new Date(lockTime) } satisfies OTPDatabase)
+    default: await ctx.database.set('otp', { bid, name }, { step, threshold, name, token, updated_at: new Date(lockTime), created_at: new Date(lockTime) })
   }
+  return clashed
 }
 
 async function read(ctx: Context, session: Session, query: BaseQuery & Name & Public) {
@@ -160,8 +143,8 @@ function mergeConfig<T>(cfg: OTPService.Config, row: T) {
   return Object.assign(extractConfig(cfg), row)
 }
 
-function rejectContext(session: Session, { public: _p = false }: Partial<Public> = {}) {
-  return session.type !== 'private' && !_p
+function rejectContext(session: Session, { public: pub = false }: Partial<Public> = {}) {
+  return session.type !== 'private' && !pub
 }
 
 
@@ -175,4 +158,38 @@ enum VariantError {
 
 function raise<E extends new (...args: any[]) => Error>(Constructor: E, ...args: ConstructorParameters<E>): never {
   throw new Constructor(...args)
+}
+
+
+function ReturnToken(props: { row: OTPDatabase }) {
+  // TODO refine returning rows
+  return <>
+    <text>[{props.row.id}] (<i18n path="created-at">{props.row.created_at}</i18n>)</text>
+    <text><i18n path="token">{props.row.token}</i18n></text>
+    <text><i18n path="algorithm">{props.row.algorithm}</i18n></text>
+    <text><i18n path="type">{props.row.type}</i18n></text>
+  </>
+}
+
+
+interface BaseQuery {
+  bid: number
+}
+
+interface Provided extends Pick<OTPDatabase, 'step' | 'threshold'>, Pick<OTPService.Config, 'salt' | 'tokenizer'> { }
+
+interface Name {
+  name: string
+}
+
+interface Token {
+  token: string
+}
+
+interface Force {
+  force: boolean
+}
+
+interface Public {
+  public: boolean
 }
