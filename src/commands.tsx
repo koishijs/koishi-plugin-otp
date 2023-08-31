@@ -1,10 +1,11 @@
 import type { Channel, Command, Context, Session, User } from 'koishi'
-import { OTPService } from './index'
+
 import { OTPDatabase } from './types'
+import { Config } from '.'
 
 
 export const using = ['database', 'otp']
-export function apply(ctx: Context, options: OTPService.Config) {
+export function apply(ctx: Context, options: Config) {
 
   const cmd = withPublicOption(ctx.command('otp [name]'))
     .userFields(['id'])
@@ -130,7 +131,7 @@ function withForceOption<T1 extends keyof User, T2 extends keyof Channel, T3 ext
 }
 
 
-function extractConfig(cfg: OTPService.Config): Provided {
+function extractConfig(cfg: Config): Provided {
   return {
     step: cfg.maxStep,
     threshold: cfg.maxStep,
@@ -139,7 +140,7 @@ function extractConfig(cfg: OTPService.Config): Provided {
   }
 }
 
-function mergeConfig<T>(cfg: OTPService.Config, row: T) {
+function mergeConfig<T>(cfg: Config, row: T) {
   return Object.assign(extractConfig(cfg), row)
 }
 
@@ -176,7 +177,7 @@ interface BaseQuery {
   bid: number
 }
 
-interface Provided extends Pick<OTPDatabase, 'step' | 'threshold'>, Pick<OTPService.Config, 'salt' | 'tokenizer'> { }
+interface Provided extends Pick<OTPDatabase, 'step' | 'threshold'>, Pick<Config, 'salt' | 'tokenizer'> { }
 
 interface Name {
   name: string
