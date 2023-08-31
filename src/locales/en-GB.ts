@@ -1,14 +1,14 @@
 import { VariantError } from "../commands"
 
 export default {
-  [VariantError.NotInASafeContext]: 'should you use this plugin within private context? Use with `-p` option to overwrite this fail-safe.',
+  [VariantError.NotInASafeContext]: 'Should you use this plugin within private context? Use with `-p` option to overwrite this fail-safe.',
   [VariantError.UserNotFound]: 'User not found',
   [VariantError.ContextNotFound]: 'Chat not found',
   [VariantError.FoundNoToken]: 'Found nothing.',
-  [VariantError.FoundNoTokenNamedAs]: 'Found nothing related to {0}.',
+  [VariantError.FoundNoTokenNamedAs]: 'Found nothing named {0}.',
   [VariantError.WillOverWriteOldToken]: 'This operation will overwrite your old token, use with `-f` option to overwrite this fail-safe.',
-  [VariantError.MissingRequired]: 'missing required inputs',
-  'otp-results': 'your otp results ({0} results): {1}',
-  'succeed-return-old-tokens': 'This is the last time you will see these token in our side. SAVE IT IF IT\'S STILL IMPORTANT TO YOU.',
+  [VariantError.MissingRequired]: 'Missing required input(s).',
+  'otp-results': 'Your otp(s) ({0} result(s)):',
+  'succeed-return-old-tokens': 'This is the LAST time you will see this token from our side. SAVE IT NOW IF YOU MAY NEED THIS TOKEN IN THE FUTURE.',
   'succeed': 'Saved.'
 }
