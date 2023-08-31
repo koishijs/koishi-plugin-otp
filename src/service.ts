@@ -45,7 +45,7 @@ export class OTPService extends Service {
       updated_at: 'date',
     }, {
       primary: ['id'],
-      unique: ['token'],
+      // unique: ['name', 'token'],
     })
   }
 

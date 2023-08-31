@@ -4,6 +4,7 @@ import { Context, Schema } from 'koishi'
 import { OTPService } from "./service"
 import * as Commands from './commands'
 import { Tokenizer } from './types'
+import enGB from './locales/en-GB'
 
 export const usage = `
 ## 插件说明
@@ -36,4 +37,7 @@ export const Config: Schema<Config> = Schema.intersect([
 export function apply(ctx: Context, opt: Config) {
   ctx.plugin(OTPService, opt)
   ctx.plugin(Commands, opt)
+
+  ctx.i18n.define('en-GB', enGB)
+  ctx.i18n.define('en-US', enGB)
 }
