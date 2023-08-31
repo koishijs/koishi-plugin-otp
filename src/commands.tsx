@@ -4,7 +4,7 @@ import { OTPDatabase } from './types'
 
 
 export const using = ['database', 'otp']
-export function koishiPluginOTPCmd(ctx: Context, options: OTPService.Config) {
+export function apply(ctx: Context, options: OTPService.Config) {
 
   const cmd = withPublicOption(ctx.command('otp [name]'))
     .userFields(['id'])

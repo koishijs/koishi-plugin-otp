@@ -1,8 +1,7 @@
 import { Context, Schema, Service } from 'koishi'
 import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
-import OTPClient from './client'
 import { createHmac } from 'node:crypto'
-import { koishiPluginOTPCmd } from './commands'
+import * as koishiPluginOTPCmd from './commands'
 
 declare module 'koishi' {
 
@@ -134,3 +133,4 @@ export namespace OTPService {
   ])
 }
 
+export default OTPService
