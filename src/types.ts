@@ -73,7 +73,8 @@ export const enum VariantCommandTranslationKey {
 export const enum VariantServiceError {
   InvalidCounter = 'invalid-counter',
   CounterMustBePositive = 'counter-must-be-positive',
-  CounterMustLessThan10 = 'counter-must-be-lt-10'
+  CounterMustLessThan10 = 'counter-must-be-lt-10',
+  RequireSecret = 'require-secret'
 }
 
 export type LanguageKeys = VariantCommandError | VariantCommandTranslationKey | VariantServiceError

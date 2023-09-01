@@ -2,7 +2,7 @@ import {
   VariantCommandError as CommandError,
   VariantServiceError as ServiceError,
   VariantCommandTranslationKey as CommandTranslationKey,
-  LanguageKeys,
+  type LanguageKeys,
 } from '../types'
 
 
@@ -28,7 +28,8 @@ const autoComplete: Record<LanguageKeys, string> = {
 
   [ServiceError.InvalidCounter]: 'Invalid Counter',
   [ServiceError.CounterMustBePositive]: 'Counter must be positive',
-  [ServiceError.CounterMustLessThan10]: 'Counter must be less than 10'
+  [ServiceError.CounterMustLessThan10]: 'Counter must be less than 10',
+  [ServiceError.RequireSecret]: 'Secret is required'
 }
 
 

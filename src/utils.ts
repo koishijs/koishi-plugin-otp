@@ -1,18 +1,20 @@
 import { ErrorMessage } from './commands';
 
-export function extractErrorMessage<T extends (...args: any[]) => any>(callback: T): T {
+export function extractErrorMessage<T extends (...args: any[]) => Promise<any>>(callback: T): T {
   return ((...args) => {
     return callback(...args)
-      .catch(captureError);
+      .catch(captureMessageFromCustomErrorVariants);
   }) as T;
 }
-function captureError(error: unknown) {
-  switch (true) {
-    case error instanceof ErrorMessage: {
-      return (error as ErrorMessage).message;
-    }
-  }
+function captureMessageFromCustomErrorVariants(error: Error) {
+  return error instanceof ErrorMessage
+    ? (error as ErrorMessage).message
+    : throwError(error)
 }
 export function raise<E extends new (...args: any[]) => Error>(Constructor: E, ...args: ConstructorParameters<E>): never {
   throw new Constructor(...args);
+}
+
+export function throwError(e: Error): never {
+  throw e
 }

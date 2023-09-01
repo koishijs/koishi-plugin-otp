@@ -1,12 +1,12 @@
 import type { Channel, Command, Context, Session, User } from 'koishi'
 
+import type { Config } from '.'
 import {
   type OTPDatabase,
   VariantCommandError as VariantError,
   VariantCommandTranslationKey as VariantTranslationKey
 } from './types'
 
-import { Config } from '.'
 import { extractErrorMessage, raise } from './utils'
 
 

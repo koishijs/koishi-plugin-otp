@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto'
 import { Context, Service } from 'koishi'
 import {
   type HOTPConfig,
@@ -6,10 +7,11 @@ import {
   type OTPOptions,
   type TOTPConfig,
   type Tokenizer,
-  VariantServiceError as VariantError
+  VariantServiceError as VariantError,
+  VariantServiceError
 } from './types'
-import { createHmac } from 'node:crypto'
-import { Config } from '.'
+import type { Config } from '.'
+
 import { raise } from './utils'
 
 
@@ -80,7 +82,7 @@ export class OTPService extends Service {
     let counter: number
 
     // check secret
-    if (!secret) throw new Error('secret is required')
+    if (!secret) throw new Error(VariantServiceError.RequireSecret)
 
     if (module === 'totp') {
       const { period, initial } = options as TOTPConfig
@@ -122,6 +124,7 @@ export class OTPService extends Service {
       if (e instanceof Error && (e as NodeJS.ErrnoException).code === "MODULE_NOT_FOUND") {
         return null
       }
+      throw e
     }
   }
 }
