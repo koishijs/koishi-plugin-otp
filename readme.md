@@ -23,9 +23,8 @@ OTP 服务支持以下算法：
 ### 命令
 
 - `otp [name]`: 列出用户保存的某个或所有密码。
-- `otp.add <name> <token>`: 添加认证账号。
+- `otp.add <name> <token>`: 添加或覆盖认证账号。
 - `otp.rm <name>`: 移除令牌。
-- `otp.up <name> <token>`: 更新（覆盖）令牌。
 
 ### 配置项
 
@@ -36,7 +35,6 @@ OTP 服务支持以下算法：
 - tokenizer (`random`、`uuid`、`timestamp`): 公共令牌生成方式，默认值：`uuid`。 
 - maxStep (`number`): 最大步长，默认值：`30`。
 - maxThreshold (`number`): 最大重试阈值，默认值：`5`。
-
 
 ## 开发
 
@@ -88,6 +86,10 @@ const otp = useOTP('totp', {
   step: 1
 }, (secret, algorithm) => hmac(secret, algorithm));
 ```
+
+## 鸣谢
+
+- [Arily](arily@arily.moe): 提供了 commands 实现与修复了一些 bug。
 
 ## License
 
