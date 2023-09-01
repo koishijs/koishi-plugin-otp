@@ -44,3 +44,36 @@ type OTPMap = {
 
 export type OTPModule = keyof OTPMap
 export type OTPOptions<M extends OTPModule> = { secret?: string } & OTPMap[M] & OTPConfig
+
+
+
+export const enum VariantCommandError {
+  NotInASafeContext = 'ctx-not-safe',
+  UserNotFound = 'user-not-found',
+  ContextNotFound = 'context-not-found',
+  FoundNoToken = 'no-token-found',
+  FoundNoTokenNamedAs = 'no-token-found-named',
+  WillOverWriteOldToken = 'will-overwrite-old-token',
+  MissingRequired = 'missing-inputs'
+}
+
+export const enum VariantCommandTranslationKey {
+  Unknown = 'unknown',
+  Succeed = 'succeed',
+  SucceedReturnOldTokens = 'succeed-return-old-tokens',
+  OTPResults = 'otp-results',
+  RemovedTokens = 'removed-tokens',
+  Token = 'token',
+  Algo = 'algorithm',
+  Type = 'type',
+  Name = 'name',
+  Code = 'code'
+}
+
+export const enum VariantServiceError {
+  InvalidCounter = 'invalid-counter',
+  CounterMustBePositive = 'counter-must-be-positive',
+  CounterMustLessThan10 = 'counter-must-be-lt-10'
+}
+
+export type LanguageKeys = VariantCommandError | VariantCommandTranslationKey | VariantServiceError

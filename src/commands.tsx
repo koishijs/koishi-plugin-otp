@@ -1,6 +1,11 @@
 import type { Channel, Command, Context, Session, User } from 'koishi'
 
-import { OTPDatabase } from './types'
+import {
+  type OTPDatabase,
+  VariantCommandError as VariantError,
+  VariantCommandTranslationKey as VariantTranslationKey
+} from './types'
+
 import { Config } from '.'
 import { extractErrorMessage, raise } from './utils'
 
@@ -38,7 +43,7 @@ export function apply(ctx: Context, options: Config) {
       })
 
       return <>
-        <i18n path="otp-results">
+        <i18n path={VariantTranslationKey.OTPResults}>
           {codes.length}
         </i18n>
         {/* {codes.map(otp => <OTP otp={otp}></OTP>)} */}
@@ -62,17 +67,17 @@ export function apply(ctx: Context, options: Config) {
       const overwritten = await save(ctx, input.session, mergeConfig(options, { bid, name, token, public: pub, force }))
       return (overwritten.length
         ? <>
-          <p>translation: "succeed-return-old-tokens"</p>
+          <p>translation: {VariantTranslationKey.SucceedReturnOldTokens}</p>
           {overwritten.map(row =>
             <>
               <p>[{row.name}] ({row.created_at.toLocaleString()})</p>
               <p>  | token: {row.token}</p>
-              <p>  | algo: {row.algorithm || 'unknown'}</p>
-              <p>  | type: {row.type || 'unknown'}</p>
+              <p>  | algo: {row.algorithm || VariantTranslationKey.Unknown}</p>
+              <p>  | type: {row.type || VariantTranslationKey.Unknown}</p>
             </>
           )}
         </>
-        : <i18n path="succeed"></i18n>)
+        : <i18n path={VariantTranslationKey.Succeed}></i18n>)
     }))
 
 
@@ -86,13 +91,13 @@ export function apply(ctx: Context, options: Config) {
       const removed = await remove(ctx, input.session, { bid, name, public: input.options.public })
 
       return <>
-        <i18n path="removed-tokens" />
+        <i18n path={VariantTranslationKey.RemovedTokens} />
         {removed.map(row =>
           <>
             <p>[{row.name}] ({row.created_at.toLocaleString()})</p>
             <p>  | token: {row.token}</p>
-            <p>  | algo: {row.algorithm || 'unknown'}</p>
-            <p>  | type: {row.type || 'unknown'}</p>
+            <p>  | algo: {row.algorithm || VariantTranslationKey.Unknown}</p>
+            <p>  | type: {row.type || VariantTranslationKey.Unknown}</p>
           </>
         )}
       </>
@@ -185,28 +190,18 @@ function rejectContext(session: Session, { public: pub = false }: Partial<Public
 function ReturnToken(props: { row: OTPDatabase }) {
   // TODO refine returning rows
   return <text>[{props.row.id}] (<i18n path="created-at">{props.row.created_at}</i18n>)
-    <i18n path="token">{props.row.token}</i18n>
-    <i18n path="algorithm">{props.row.algorithm}</i18n>
-    <i18n path="type">{props.row.type}</i18n>
+    <i18n path={VariantTranslationKey.Token}>{props.row.token}</i18n>
+    <i18n path={VariantTranslationKey.Algo}>{props.row.algorithm}</i18n>
+    <i18n path={VariantTranslationKey.Type}>{props.row.type}</i18n>
   </text>
 }
 
 function OTP(props: { otp: { name: string, code: any } }) {
   // TODO refine returning rows
   return <text>
-    <i18n path="name">{props.otp.name}</i18n>
-    <i18n path="code">{props.otp.code}</i18n>
+    <i18n path={VariantTranslationKey.Name}>{props.otp.name}</i18n>
+    <i18n path={VariantTranslationKey.Code}>{props.otp.code}</i18n>
   </text>
-}
-
-export const enum VariantError {
-  NotInASafeContext = 'ctx-not-safe',
-  UserNotFound = 'user-not-found',
-  ContextNotFound = 'context-not-found',
-  FoundNoToken = 'no-token-found',
-  FoundNoTokenNamedAs = 'no-token-found-named',
-  WillOverWriteOldToken = 'will-overwrite-old-token',
-  MissingRequired = 'missing-inputs'
 }
 
 export class ErrorMessage extends Error {

@@ -1,5 +1,13 @@
 import { Context, Service } from 'koishi'
-import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
+import {
+  type HOTPConfig,
+  type OTPDatabase,
+  type OTPModule,
+  type OTPOptions,
+  type TOTPConfig,
+  type Tokenizer,
+  VariantServiceError as VariantError
+} from './types'
 import { createHmac } from 'node:crypto'
 import { Config } from '.'
 import { raise } from './utils'
@@ -82,9 +90,9 @@ export class OTPService extends Service {
     }
 
     // check counter
-    if (!counter) throw new Error('invalid counter')
-    if (counter < 0) throw new Error('counter must be positive')
-    if (counter > 10) throw new Error('counter must be less than 10')
+    if (!counter) throw new Error(VariantError.InvalidCounter)
+    if (counter < 0) throw new Error(VariantError.CounterMustBePositive)
+    if (counter > 10) throw new Error(VariantError.CounterMustLessThan10)
 
     const hmac = createHmac(algorithm ?? 'sha1', secret)
     hmac.update(Buffer.from(counter.toString(16).padStart(16, '0'), 'hex'))
