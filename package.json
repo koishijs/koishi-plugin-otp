@@ -8,6 +8,7 @@
     "name": "Lipraty",
     "email": "i@lonay.me"
   },
+  "contributors": ["Arily <arily@arily.moe>"],
   "files": [
     "lib",
     "dist"
