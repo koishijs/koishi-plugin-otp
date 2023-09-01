@@ -18,3 +18,8 @@ export function raise<E extends new (...args: any[]) => Error>(Constructor: E, .
 export function throwError(e: Error): never {
   throw e
 }
+
+export function assertNeverReached(input?: never): never {
+  raise(Error, 'unhandled value: ' + input )
+}
+

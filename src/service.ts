@@ -12,7 +12,7 @@ import {
 } from './types'
 import type { Config } from '.'
 
-import { raise } from './utils'
+import { assertNeverReached, raise } from './utils'
 
 
 declare module 'koishi' {
@@ -69,6 +69,9 @@ export class OTPService extends Service {
         break
       case 'timestamp':
         token = Date.now().toString(36)
+        break
+      default:
+        assertNeverReached(tokenizer)
     }
     return Buffer.from(token + salt).toString('hex')
   }
@@ -89,6 +92,8 @@ export class OTPService extends Service {
       counter = Math.floor((Date.now() / 1000 - initial) / period)
     } else if (module === 'hotp') {
       counter = (options as HOTPConfig).counter
+    } else {
+      assertNeverReached()
     }
 
     // check counter

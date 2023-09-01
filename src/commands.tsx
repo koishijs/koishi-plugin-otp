@@ -28,19 +28,19 @@ export function apply(ctx: Context, options: Config) {
         return <i18n path={name ? VariantError.FoundNoTokenNamedAs : VariantError.FoundNoToken}>{name}</i18n>
       }
 
-      const codes = otp.map(otp => {
-        const { type, algorithm, digits, counter, period, initial } = otp
-        let code: string
-        ctx.otp.generate(type, {
+      const codes = await Promise.all(otp.map(async otp => {
+        const { type, algorithm, digits, counter, period, initial } = mergeConfig(options, otp)
+        return ctx.otp.generate(type, {
           secret: otp.token,
           algorithm, digits, counter, period, initial
-        }).then(coder => code = coder.toString())
-          .catch(() => code = 'error')
-        return {
-          name: otp.name,
-          code: code
-        }
-      })
+        })
+          .catch(() => 'error')
+          .then(coder => ({
+            name: otp.name,
+            code: coder.toString()
+          }))
+
+      }))
 
       return <>
         <i18n path={VariantTranslationKey.OTPResults}>
@@ -162,10 +162,10 @@ async function getToken(ctx: Context, { bid, name }: BaseQuery & Name) {
   return await ctx.database.get('otp', name ? { bid, name } : { bid })
 }
 
-function withPublicOption<T1 extends keyof User, T2 extends keyof Channel, T3 extends any[], T4>(input: Command<T1, T2, T3, T4>) {
+function withPublicOption<T1 extends keyof User, T2 extends keyof Channel, T3 extends any[], T4 extends {}>(input: Command<T1, T2, T3, T4>) {
   return input.option('public', '-p 无视安全隐患，允许在非私信环境下使用。')
 }
-function withForceOption<T1 extends keyof User, T2 extends keyof Channel, T3 extends any[], T4>(input: Command<T1, T2, T3, T4>) {
+function withForceOption<T1 extends keyof User, T2 extends keyof Channel, T3 extends any[], T4 extends {}>(input: Command<T1, T2, T3, T4>) {
   return input.option('force', '-f 无视安全隐患，覆盖已经保存的token。在私信环境或“允许在非私信环境下使用”时会返回旧token。')
 }
 
