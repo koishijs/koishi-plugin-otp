@@ -2,6 +2,7 @@ import { Context, Service } from 'koishi'
 import { HOTPConfig, OTPDatabase, OTPModule, OTPOptions, TOTPConfig, Tokenizer } from './types'
 import { createHmac } from 'node:crypto'
 import { Config } from '.'
+import { raise } from './utils'
 
 
 declare module 'koishi' {
@@ -16,9 +17,7 @@ declare module 'koishi' {
 }
 
 export class OTPService extends Service {
-  readonly using = ['database']
-
-  readonly crypto = globalThis.crypto ?? require('node:crypto')
+  static readonly crypto = OTPService.getCrypto()
 
   constructor(ctx: Context, private config: Config) {
     super(ctx, 'otp')
@@ -53,7 +52,7 @@ export class OTPService extends Service {
     let token: string
     switch (tokenizer) {
       case 'uuid':
-        token = this.crypto.randomUUID()
+        token = OTPService.crypto.randomUUID()
         break
       case 'random':
         token = Math.random().toString(36).slice(2)
@@ -97,5 +96,24 @@ export class OTPService extends Service {
       | (digest[offset + 3] & 0xff)
 
     return code % (10 ** (digits ?? 6))
+  }
+
+  static getCrypto() {
+    return (
+      globalThis.crypto
+      ?? OTPService.NODEJS__tryModule('node:crypto')
+      ?? OTPService.NODEJS__tryModule('crypto')
+      ?? raise(ReferenceError, '')
+    )
+  }
+
+  static NODEJS__tryModule(...imp: Parameters<NodeRequire>) {
+    try {
+      return require(...imp)
+    } catch (e) {
+      if (e instanceof Error && (e as NodeJS.ErrnoException).code === "MODULE_NOT_FOUND") {
+        return null
+      }
+    }
   }
 }
