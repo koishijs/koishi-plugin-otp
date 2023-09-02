@@ -7,7 +7,8 @@ import {
   type TOTPConfig,
   type Tokenizer,
   VariantServiceError as VariantError,
-  VariantServiceError
+  VariantServiceError,
+  HMACAlgorithm
 } from './types'
 import type { Config } from '.'
 
@@ -82,6 +83,36 @@ export class OTPService extends Service {
       | (digest[offset + 3] & 0xff)
 
     return code % (10 ** (digits ?? 6))
+  }
+
+  async webHmacDigest(algorithm: HMACAlgorithm, secret: string, counter: number): Promise<ArrayBuffer> {
+    const encoder = new TextEncoder()
+    const secretEncoded = encoder.encode(secret)
+    const counterEncoded = encoder.encode(counter.toString(16).padStart(16, '0'))
+
+    const algorMap = {
+      'sha1': 'SHA-1',
+      'sha256': 'SHA-256',
+      'sha512': 'SHA-512'
+    }
+
+    const secret2key = await OTPService.crypto.subtle.importKey(
+      'raw',
+      secretEncoded,
+      {
+        name: 'HMAC',
+        hash: algorMap[algorithm]
+      },
+      false,
+      ['sign'])
+    const hash = await OTPService.crypto.subtle.sign({
+      name: 'HMAC',
+      hash: algorMap[algorithm]
+    },
+      secret2key,
+      counterEncoded)
+
+    return hash
   }
 
   static getCrypto() {
