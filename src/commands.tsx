@@ -10,8 +10,40 @@ import {
 import { extractErrorMessage, raise } from './utils'
 
 
+declare module 'koishi' {
+
+  interface Tables {
+    otp: OTPDatabase
+  }
+}
+
 export const using = ['database', 'otp']
 export function apply(ctx: Context, options: Config) {
+  ctx.model.extend('otp', {
+    id: 'unsigned',
+    bid: 'unsigned',
+    name: 'string',
+    token: 'text',
+    type: 'string', // totp | hotp
+    step: {
+      type: 'integer',
+      initial: options.maxStep
+    },
+    threshold: {
+      type: 'integer',
+      initial: options.maxThreshold
+    },
+    algorithm: 'string',
+    digits: 'integer',
+    counter: 'integer',
+    period: 'integer',
+    initial: 'integer',
+    created_at: 'date',
+    updated_at: 'date',
+  }, {
+    primary: ['id'],
+    // unique: ['name', 'token'],
+  })
 
   const cmd = withPublicOption(ctx.command('otp [name]'))
     .userFields(['id'])

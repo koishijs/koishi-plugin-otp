@@ -2,7 +2,6 @@ import { createHmac } from 'node:crypto'
 import { Context, Service } from 'koishi'
 import {
   type HOTPConfig,
-  type OTPDatabase,
   type OTPModule,
   type OTPOptions,
   type TOTPConfig,
@@ -14,13 +13,7 @@ import type { Config } from '.'
 
 import { assertNeverReached, raise } from './utils'
 
-
 declare module 'koishi' {
-
-  interface Tables {
-    otp: OTPDatabase
-  }
-
   interface Context {
     otp: OTPService
   }
@@ -31,31 +24,6 @@ export class OTPService extends Service {
 
   constructor(ctx: Context, private config: Config) {
     super(ctx, 'otp')
-    ctx.model.extend('otp', {
-      id: 'unsigned',
-      bid: 'unsigned',
-      name: 'string',
-      token: 'text',
-      type: 'string', // totp | hotp
-      step: {
-        type: 'integer',
-        initial: config.maxStep
-      },
-      threshold: {
-        type: 'integer',
-        initial: config.maxThreshold
-      },
-      algorithm: 'string',
-      digits: 'integer',
-      counter: 'integer',
-      period: 'integer',
-      initial: 'integer',
-      created_at: 'date',
-      updated_at: 'date',
-    }, {
-      primary: ['id'],
-      // unique: ['name', 'token'],
-    })
   }
 
   public createToken(tokenizer: Tokenizer, salt: string) {
@@ -95,6 +63,9 @@ export class OTPService extends Service {
     } else {
       assertNeverReached()
     }
+
+    // TODO: the 'sha1' algorithm is unsafe, throw an warning if it is used? or throw an error?
+    // in RFC 6238 and RFC 4226 , it is recommended to use 'sha2' (sha256, sha512, etc.) instead of 'sha1'
 
     // check counter
     if (!counter) throw new Error(VariantError.InvalidCounter)
