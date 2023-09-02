@@ -14,12 +14,6 @@ OTP 服务支持以下算法：
 
 更多算法欢迎提交 PR。
 
-### 计划
-
-- [x] 为 Koishi 提供基于命令的 OTP 服务
-- [ ] 浏览器兼容的 OTP 计算方式
-- [ ] WebUI 支持
-
 ## 使用
 
 ### 安装
@@ -76,12 +70,14 @@ yarn add koishi-plugin-otp -D
 
 创建共享密钥。
 
-## 在 WebUI 中使用(WIP)
+## 在 WebUI 中使用
 
-插件计划支持在 WebUI 中使用，但需要自行导入 HMAC 算法库（为确保兼容性，请确认算法库支持 `SHA1`、`SHA256`、`SHA512` 算法）。下面是计划中的使用方式：
+> [!WARNING]  
+> 浏览器 Crypto API 有较大的安全性限制，请确保符合 MDN 的 [安全性要求](https://developer.mozilla.org/zh-CN/docs/Web/API/Crypto/getRandomValues#%E5%AE%89%E5%85%A8%E6%80%A7%E8%A6%81%E6%B1%82)。
+
+插件支持在 WebUI 中使用，并且得益于浏览器的 Crypto API，不需要额外导入 HMAC 算法：
 
 ```typescript
-import { hmac } from 'your hmac library'
 import { useOTP } from 'koishi-plugin-otp/dist'
 
 const otp = useOTP('totp', {
@@ -90,7 +86,7 @@ const otp = useOTP('totp', {
   digits: 6,
   period: 30,
   step: 1
-}, (secret, algorithm) => hmac(secret, algorithm));
+});
 ```
 
 ## 鸣谢
