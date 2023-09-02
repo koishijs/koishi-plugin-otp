@@ -76,7 +76,7 @@ export class OTPService extends Service {
     const hmac = createHmac(algorithm ?? 'sha1', secret)
     hmac.update(Buffer.from(counter.toString(16).padStart(16, '0'), 'hex'))
     const digest = hmac.digest()
-    const offset = digest[digest.length - 1] & 0xf
+    const offset = digest[digest.byteLength - 1] & 0xf
     const code = (digest[offset] & 0x7f) << 24
       | (digest[offset + 1] & 0xff) << 16
       | (digest[offset + 2] & 0xff) << 8
@@ -85,41 +85,11 @@ export class OTPService extends Service {
     return code % (10 ** (digits ?? 6))
   }
 
-  async webHmacDigest(algorithm: HMACAlgorithm, secret: string, counter: number): Promise<ArrayBuffer> {
-    const encoder = new TextEncoder()
-    const secretEncoded = encoder.encode(secret)
-    const counterEncoded = encoder.encode(counter.toString(16).padStart(16, '0'))
-
-    const algorMap = {
-      'sha1': 'SHA-1',
-      'sha256': 'SHA-256',
-      'sha512': 'SHA-512'
-    }
-
-    const secret2key = await OTPService.crypto.subtle.importKey(
-      'raw',
-      secretEncoded,
-      {
-        name: 'HMAC',
-        hash: algorMap[algorithm]
-      },
-      false,
-      ['sign'])
-    const hash = await OTPService.crypto.subtle.sign({
-      name: 'HMAC',
-      hash: algorMap[algorithm]
-    },
-      secret2key,
-      counterEncoded)
-
-    return hash
-  }
-
   static getCrypto() {
     return (
-      globalThis.crypto
+      globalThis.crypto // nodejs >= 19: Crypto is a concrete interface, but calling require('crypto') returns an instance of the Crypto class.
       ?? OTPService.NODEJS__tryModule('node:crypto')
-      ?? OTPService.NODEJS__tryModule('crypto')
+      ?? OTPService.NODEJS__tryModule('crypto').webcrypto // nodejs < 19: Crypto is not a concrete interface, but calling require('crypto').webcrypto returns an instance of the Crypto class.
       ?? raise(ReferenceError, '')
     )
   }
