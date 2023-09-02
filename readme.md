@@ -73,7 +73,7 @@ yarn add koishi-plugin-otp -D
 ## 在 WebUI 中使用
 
 > [!WARNING]  
-> 浏览器 Crypto API 有较大的安全性限制，请确保符合 MDN 的 [安全性要求](https://developer.mozilla.org/zh-CN/docs/Web/API/Crypto/getRandomValues#%E5%AE%89%E5%85%A8%E6%80%A7%E8%A6%81%E6%B1%82)。
+> 浏览器 Crypto API 有一定的安全性限制，请确保浏览器支持与符合[安全上下文](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)。
 
 插件支持在 WebUI 中使用，并且得益于浏览器的 Crypto API，不需要额外导入 HMAC 算法：
 
