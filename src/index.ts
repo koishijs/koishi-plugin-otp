@@ -5,6 +5,7 @@ import { OTPService } from "./service"
 import * as Commands from './commands'
 import { Tokenizer } from './types'
 import enGB from './locales/en-GB'
+import zhCN from './locales/zh-CN'
 
 export const usage = `
 ## 插件说明
@@ -38,6 +39,7 @@ export function apply(ctx: Context, opt: Config) {
   ctx.plugin(OTPService, opt)
   ctx.plugin(Commands, opt)
 
+  ctx.i18n.define('zh-CN', zhCN)
   ctx.i18n.define('en-GB', enGB)
   ctx.i18n.define('en-US', enGB)
 }
