@@ -7,8 +7,7 @@ import {
   type TOTPConfig,
   type Tokenizer,
   VariantServiceError as VariantError,
-  VariantServiceError,
-  HMACAlgorithm
+  VariantServiceError
 } from './types'
 import type { Config } from '.'
 

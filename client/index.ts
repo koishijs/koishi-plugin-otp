@@ -1,7 +1,7 @@
 import { HOTPConfig, OTPModule, OTPOptions, TOTPConfig, VariantServiceError } from '../src/types'
 import { OTPAlgorithm, OTPGenerator } from '../src/shared'
 
-export async function useOTP<M extends OTPModule>(module: M, options: OTPOptions<M>) {
+export async function useOTP<M extends OTPModule>(module: M, options: OTPOptions<M>): Promise<string> {
     const algorMap = {
         'sha1': 'SHA-1',
         'sha256': 'SHA-256',
