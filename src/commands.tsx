@@ -126,11 +126,14 @@ export function apply(ctx: Context, options: Config) {
   withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
     .userFields(['id'])
     .usage('添加、更新（覆盖）令牌')
+    .option('method', '-m <method> 生成令牌的方法，totp | hotp', { fallback: 'totp' })
     .action(extractErrorMessage(async (input) => {
       const session = input.session || raise(ErrorMessage, VariantError.ContextNotFound)
       const bid = input.session?.user?.id ?? raise(ErrorMessage, session.text(VariantError.UserNotFound))
       const [name, token] = input.args
-      const { public: pub, force } = input.options ?? {}
+      const { public: pub, force, method } = input.options ?? {}
+
+      if(!['totp', 'hotp'].includes(method)) return raise(ErrorMessage, session.text(VariantError.FailMethod))
 
       const overwritten = await save(ctx, input.session, mergeConfig(options, { bid, name, token, public: pub, force }))
       return (overwritten.length

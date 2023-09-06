@@ -12,6 +12,7 @@ const autoComplete: Record<LanguageKeys, string> = {
   [CommandError.ContextNotFound]: 'Chat not found',
   [CommandError.FoundNoToken]: 'Found nothing.',
   [CommandError.FoundNoTokenNamedAs]: 'Found nothing named {0}.',
+  [CommandError.FailMethod]: 'Invalid algorithm.',
   [CommandError.WillOverWriteOldToken]: 'This operation will overwrite your old token, use with `-f` option to overwrite this fail-safe.',
   [CommandError.MissingRequired]: 'Missing required input(s).',
 

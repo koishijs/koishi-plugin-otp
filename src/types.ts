@@ -53,6 +53,7 @@ export const enum VariantCommandError {
   ContextNotFound = 'context-not-found',
   FoundNoToken = 'no-token-found',
   FoundNoTokenNamedAs = 'no-token-found-named',
+  FailMethod = 'fail-method',
   WillOverWriteOldToken = 'will-overwrite-old-token',
   MissingRequired = 'missing-inputs'
 }
