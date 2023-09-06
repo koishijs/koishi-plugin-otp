@@ -27,12 +27,9 @@
       "en_US": "the one time password service"
     },
     "service": {
-      "implements": [
-        "otp"
-      ],
-      "required": [
-        "database"
-      ]
+      "implements": ["otp"],
+      "required": ["database"],
+      "optional": ["qrcode-service"]
     }
   },
   "keywords": [
@@ -46,7 +43,8 @@
     "hotp"
   ],
   "devDependencies": {
-    "@koishijs/client": "^5.11.0"
+    "@koishijs/client": "^5.11.0",
+    "koishi-plugin-qrcode-service": "^0.0.1"
   },
   "peerDependencies": {
     "koishi": "^4.12.0",
