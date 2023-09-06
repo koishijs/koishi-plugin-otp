@@ -12,6 +12,7 @@ const autoComplete: Record<LanguageKeys, string> = {
   [CommandError.ContextNotFound]: '消息不存在',
   [CommandError.FoundNoToken]: 'Token 不存在',
   [CommandError.FoundNoTokenNamedAs]: '找不到名称 {0}.',
+  [CommandError.FailMethod]: '错误的算法类型。',
   [CommandError.WillOverWriteOldToken]: '这将覆盖你的旧 Token ，使用 `-f` 选项以覆盖此安全检查。',
   [CommandError.MissingRequired]: '缺少必要的输入。',
 
