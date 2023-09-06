@@ -111,7 +111,7 @@ export function apply(ctx: Context, options: Config) {
               const name = coder.searchParams.get('issuer') || coder.hostname
               const token = coder.searchParams.get('secret')
               if (name && token) {
-                return session.execute(`otp add ${name} ${token}`)
+                return session.execute(`otp.add ${name} ${token}`)
               }
             }
           } catch (error) {
