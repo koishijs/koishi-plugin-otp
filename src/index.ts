@@ -18,6 +18,7 @@ export const usage = `
 export interface Config {
   tokenizer: Tokenizer
   salt: string
+  qrcode: boolean
   maxStep: number
   maxThreshold: number
 }
@@ -29,11 +30,15 @@ export const Config: Schema<Config> = Schema.intersect([
       'random',
       'timestamp']).default('uuid').description('令牌生成方式'),
     salt: Schema.string().description('令牌生成盐').required(),
+    qrcode: Schema.boolean().default(false).description('是否启用二维码（需要 qrcode 服务）'),
   }).description('基础配置'),
   Schema.object({
     maxStep: Schema.number().min(5).default(30).description('默认允许的最大步长'),
     maxThreshold: Schema.number().min(3).max(10).default(5).description('默认允许的最大重试步数'),
   }).description('安全性配置'),
+  Schema.object({
+    
+  }).description('二维码配置'),
 ])
 export function apply(ctx: Context, opt: Config) {
   ctx.plugin(OTPService, opt)
