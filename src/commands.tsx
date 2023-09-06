@@ -104,10 +104,19 @@ export function apply(ctx: Context, options: Config) {
         if (imgUrl) {
           try {
             img = await ctx.http.file(imgUrl)
+            const { ['text']: qrcode } = await ctx.qrcode.decode(Buffer.from(img.data))
+            if (qrcode) {
+              const coder = new URL(qrcode)
+              if(coder.protocol !== 'otpauth:') return raise(ErrorMessage, VariantError.MissingRequired)
+              const name = coder.searchParams.get('issuer') || coder.hostname
+              const token = coder.searchParams.get('secret')
+              if (name && token) {
+                return session.execute(`otp add ${name} ${token}`)
+              }
+            }
           } catch (error) {
             return raise(ErrorMessage, VariantError.MissingRequired)
           }
-          ctx.qrcode.decode(Buffer.from(img.data))
         } else {
           return raise(ErrorMessage, VariantError.MissingRequired)
         }
