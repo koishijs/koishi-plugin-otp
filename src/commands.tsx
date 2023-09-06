@@ -1,4 +1,5 @@
-import type { Channel, Command, Context, Session, User } from 'koishi'
+import { h, type Channel, type Command, type Context, type Session, type User, Quester } from 'koishi'
+import { } from 'koishi-plugin-qrcode-service'
 
 import type { Config } from '.'
 import {
@@ -62,7 +63,7 @@ export function apply(ctx: Context, options: Config) {
 
       const codes = await Promise.all(otp.map(async otp => {
         const { type, algorithm, digits, counter, period, initial } = mergeConfig(options, otp)
-        if(!period || !counter || !initial) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
+        if (!period || !counter || !initial) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
         return ctx.otp.generate(type, {
           secret: otp.token,
           algorithm, digits, counter, period, initial
@@ -87,6 +88,31 @@ export function apply(ctx: Context, options: Config) {
       </>
     }))
 
+  ctx.using(['qrcode-service'], (ctx) => {
+    withPublicOption(withForceOption(cmd.subcommand('.qrcode <image>')))
+      .userFields(['id'])
+      .usage('通过二维码添加、（覆盖）令牌')
+      .action(extractErrorMessage(async (input) => {
+        const session = input.session || raise(ErrorMessage, VariantError.ContextNotFound)
+        let imgUrl: string | undefined, img: Buffer | string | Quester.File | undefined
+        h('', h.transform(h.parse(input.args[0]), {
+          image(attrs) {
+            imgUrl = attrs.url
+            return ''
+          }
+        })).toString(true)
+        if (imgUrl) {
+          try {
+            img = await ctx.http.file(imgUrl)
+          } catch (error) {
+            return raise(ErrorMessage, VariantError.MissingRequired)
+          }
+          ctx.qrcode.decode(Buffer.from(img.data))
+        } else {
+          return raise(ErrorMessage, VariantError.MissingRequired)
+        }
+      }))
+  })
 
   withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
     .userFields(['id'])
