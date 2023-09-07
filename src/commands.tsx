@@ -1,4 +1,4 @@
-import { h, type Channel, type Command, type Context, type Session, type User, Quester, Element } from 'koishi'
+import { h, type Channel, type Command, type Context, type Session, type User, Element } from 'koishi'
 import { } from 'koishi-plugin-qrcode-service'
 
 import type { Config } from '.'
@@ -179,7 +179,7 @@ export function apply(ctx: Context, options: Config) {
     }))
 }
 
-async function remove(ctx: Context, session: Session, query: BaseQuery & Name & Partial<Public>) {
+async function remove(ctx: Context, session: Session<never, never>, query: BaseQuery & Name & Partial<Public>) {
   const clashes = await getToken(ctx, query)
   const { bid, name } = query
 
@@ -194,7 +194,7 @@ async function remove(ctx: Context, session: Session, query: BaseQuery & Name & 
   return clashes
 }
 
-async function save(ctx: Context, session: Session, query: Provided & Type & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
+async function save<S extends Session<never, never>>(ctx: Context, session: S, query: Provided & Type & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
   const lockTime = Date.now()
   const { bid, name, token, salt, tokenizer, threshold, step } = query
   const clashed = await getToken(ctx, { bid, name })
@@ -221,7 +221,7 @@ async function save(ctx: Context, session: Session, query: Provided & Type & Bas
   return clashed
 }
 
-async function read(ctx: Context, session: Session, query: BaseQuery & Partial<Name> & Partial<Public>) {
+async function read(ctx: Context, session: Session<never, never>, query: BaseQuery & Partial<Name> & Partial<Public>) {
   const { bid, name } = query
   const rejectThisContext = rejectContext(session, query)
 
@@ -258,7 +258,7 @@ function mergeConfig<T>(cfg: Config, row: T) {
   return Object.assign(extractConfig(cfg), row)
 }
 
-function rejectContext(session: Session, { public: pub = false }: Partial<Public> = {}) {
+function rejectContext(session: Session<never, never>, { public: pub = false }: Partial<Public> = {}) {
   return !session.isDirect && !pub
 }
 
