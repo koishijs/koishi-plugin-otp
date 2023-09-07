@@ -21,6 +21,15 @@
   "bugs": {
     "url": "https://github.com/koishijs/koishi-plugin-otp/issues"
   },
+  "scripts": {
+    "build": "yakumo build",
+    "docs:dev": "vitepress dev docs --open",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs",
+    "bump": "yakumo version",
+    "dep": "yakumo upgrade",
+    "pub": "yakumo publish"
+  },
   "koishi": {
     "description": {
       "zh_CN": "OTP 验证码服务",
