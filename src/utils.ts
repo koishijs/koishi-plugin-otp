@@ -20,8 +20,24 @@ export function throwError(e: Error): never {
 }
 
 export function assertNeverReached(input?: never): never {
-  raise(Error, 'unhandled value: ' + input )
+  raise(Error, 'unhandled value: ' + input)
 }
 
 export const PLUGIN_NAME = 'otp'
 
+export function commandLocaleGen(desc, option?) {
+  let result = {
+    [desc._name]: {
+      description: desc._root
+    }
+  }
+  for (let key in desc) {
+    if (key === '_root') continue
+    if (key === '_name') continue
+    result[desc._name][key] = {
+      description: desc[key],
+      options: option ? option[key] : undefined
+    }
+  }
+  return result
+}
