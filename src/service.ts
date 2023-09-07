@@ -11,7 +11,7 @@ import {
 } from './types'
 import type { Config } from '.'
 
-import { assertNeverReached, raise } from './utils'
+import { PLUGIN_NAME, assertNeverReached, raise } from './utils'
 
 declare module 'koishi' {
   interface Context {
@@ -23,7 +23,7 @@ export class OTPService extends Service {
   static readonly crypto = OTPService.getCrypto()
 
   constructor(ctx: Context, private config: Config) {
-    super(ctx, 'otp')
+    super(ctx, PLUGIN_NAME)
   }
 
   public createToken(tokenizer: Tokenizer, salt: string) {

@@ -23,3 +23,5 @@ export function assertNeverReached(input?: never): never {
   raise(Error, 'unhandled value: ' + input )
 }
 
+export const PLUGIN_NAME = 'otp'
+

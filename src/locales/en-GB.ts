@@ -4,6 +4,7 @@ import {
   VariantCommandTranslationKey as CommandTranslationKey,
   type LanguageKeys,
 } from '../types'
+import { PLUGIN_NAME } from '../utils'
 
 
 const autoComplete: Record<LanguageKeys, string> = {
@@ -33,5 +34,39 @@ const autoComplete: Record<LanguageKeys, string> = {
   [ServiceError.RequireSecret]: 'Secret is required'
 }
 
+const description: Record<string, string> = {
+  _name: PLUGIN_NAME,
+  _root: 'One-time Password Service',
+  add: 'Add or overwrite a token',
+  rm: 'Remove a token'
+}
 
-export default autoComplete
+const options: Record<keyof typeof description, Record<string, string>> = {
+  add: {
+    force: 'Force overwrite old token',
+    public: 'Use in public environment',
+    method: 'Algorithm [TOTP/HOTP]'
+  }
+}
+
+const langGen = (desc, option?) => {
+  let result = {
+    [desc._name]: {
+      description: desc._root
+    }
+  }
+  for (let key in desc) {
+    if (key === '_root') continue
+    if (key === '_name') continue
+    result[desc._name][key] = {
+      description: desc[key],
+      options: option ? option[key] : undefined
+    }
+  }
+  return result
+}
+
+export default {
+  commands: langGen(description, options),
+  ...autoComplete
+}
