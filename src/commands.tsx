@@ -108,10 +108,11 @@ export function apply(ctx: Context, options: Config) {
             if (qrcode) {
               const coder = new URL(qrcode)
               if(coder.protocol !== 'otpauth:') return raise(ErrorMessage, VariantError.MissingRequired)
-              const name = coder.searchParams.get('issuer') || coder.hostname
+              const method = coder.hostname || 'totp'
+              const name = coder.searchParams.get('issuer') || coder.pathname.replace(/^\//, '')
               const token = coder.searchParams.get('secret')
               if (name && token) {
-                return session.execute(`otp.add ${name} ${token}`)
+                return session.execute(`otp.add ${name} ${token} -fpm ${method}`)
               }
             }
           } catch (error) {
