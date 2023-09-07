@@ -3,7 +3,7 @@
 > [!WARNING]  
 > 这是一个早期版本，可能会有较大的 API 变动。
 
-[![npm](https://img.shields.io/npm/v/koishi-plugin-otp?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-otp)
+[![npm](https://img.shields.io/npm/v/koishi-plugin-otp?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-otp) [![GitHub issues](https://img.shields.io/github/issues/koishijs/koishi-plugin-otp?style=flat-square)](https://github.com/koishijs/koishi-plugin-otp/issues) ![Rating](https://badge.koishi.chat/rating/koishi-plugin-otp)
 
 为 Koishi 提供了一次性密码服务。
 
@@ -89,9 +89,9 @@ const otp = useOTP('totp', {
 });
 ```
 
-## 鸣谢
+## 贡献者
 
-- [Arily](arily@arily.moe): 提供了 commands 实现与修复了一些 bug。
+[![Star History Chart](https://contrib.rocks/image?repo=koishijs/koishi-plugin-otp)](https://github.com/koishijs/koishi-plugin-otp/graphs/contributors)
 
 ## License
 
