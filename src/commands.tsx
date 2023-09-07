@@ -74,7 +74,7 @@ export function apply(ctx: Context, options: Config) {
             code: coder.toString()
           }))
 
-      }))
+      })) as { name: string, code: any }[]
 
       return <>
         <i18n path={VariantTranslationKey.OTPResults}>
@@ -112,7 +112,7 @@ export function apply(ctx: Context, options: Config) {
               const name = coder.searchParams.get('issuer') || coder.pathname.replace(/^\//, '')
               const token = coder.searchParams.get('secret')
               if (name && token) {
-                return session.execute(`otp.add ${name} ${token} -fpm ${method}`)
+                return session.execute(`otp.add ${name} ${token} -m ${method} -fp`)
               }
             }
           } catch (error) {
