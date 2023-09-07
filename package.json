@@ -29,7 +29,7 @@
     "service": {
       "implements": ["otp"],
       "required": ["database"],
-      "optional": ["qrcode-service"]
+      "optional": ["qrcode"]
     }
   },
   "keywords": [

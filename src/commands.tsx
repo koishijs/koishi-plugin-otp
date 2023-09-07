@@ -88,7 +88,7 @@ export function apply(ctx: Context, options: Config) {
       </>
     }))
 
-  ctx.using(['qrcode-service'], (ctx) => {
+  ctx.using(['qrcode'], (ctx) => {
     withPublicOption(withForceOption(cmd.subcommand('.qrcode <image>')))
       .userFields(['id'])
       .usage('通过二维码添加、（覆盖）令牌')
@@ -104,9 +104,9 @@ export function apply(ctx: Context, options: Config) {
         if (imgUrl) {
           try {
             img = await ctx.http.file(imgUrl)
-            const { ['text']: qrcode } = await ctx.qrcode.decode(Buffer.from(img.data))
-            if (qrcode) {
-              const coder = new URL(qrcode)
+            const { ['text']: qrcoder } = await ctx.qrcode.decode(Buffer.from(img.data))
+            if (qrcoder) {
+              const coder = new URL(qrcoder)
               if(coder.protocol !== 'otpauth:') return raise(ErrorMessage, VariantError.MissingRequired)
               const method = coder.hostname || 'totp'
               const name = coder.searchParams.get('issuer') || coder.pathname.replace(/^\//, '')
