@@ -126,7 +126,6 @@ export function apply(ctx: Context, options: Config) {
       .usage('通过二维码添加、（覆盖）令牌')
       .action(extractErrorMessage(async (input) => {
         const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
-        let img: Buffer | string | Quester.File | undefined
 
         const imgUrl = await new Promise<string>((resolve, reject) => {
           h('', h.transform(h.parse(input.args?.[0] ?? raise(ErrorMessage, VariantError.QRCodeNotFound)), {
@@ -135,27 +134,24 @@ export function apply(ctx: Context, options: Config) {
               return ''
             }
           })).toString(true)
+          reject(VariantError.QRCodeNotFound)
         })
 
         const options = input.options ?? {}
 
-        try {
-          img = await ctx.http.file(imgUrl)
-          const { text: qrcoder } = await ctx.qrcode.decode(Buffer.from(img.data))
-          const coder = new URL(qrcoder ?? raise(ErrorMessage, VariantError.MissingRequired))
-          coder.protocol === 'otpauth:' || raise(ErrorMessage, VariantError.InvalidQRCode)
+        const img = await ctx.http.file(imgUrl)
+        const { text: qrcoder } = await ctx.qrcode.decode(Buffer.from(img.data))
+        const coder = new URL(qrcoder ?? raise(ErrorMessage, VariantError.QRCodeNotFound))
+        coder.protocol === 'otpauth:' || raise(ErrorMessage, VariantError.InvalidQRCode)
 
-          const method = coder.hostname || Method.TOTP
-          const name = coder.searchParams.get('issuer') ?? coder.pathname.replace(/^\//, '')
-          const token = coder.searchParams.get('secret')
+        const method = coder.hostname || Method.TOTP
+        const name = coder.searchParams.get('issuer') ?? coder.pathname.replace(/^\//, '')
+        const token = coder.searchParams.get('secret')
 
-          return (
-            name && token && otpAddCommand.execute({ session, options: { ...options, method }, args: [name, token] })
-            || undefined
-          )
-        } catch (error) {
-          return raise(ErrorMessage, VariantError.MissingRequired)
-        }
+        return (
+          name && token && otpAddCommand.execute({ session, options: { ...options, method }, args: [name, token] })
+          || undefined
+        )
       }))
   })
 
