@@ -13,9 +13,13 @@ const autoComplete: Record<LanguageKeys, string> = {
   [CommandError.ContextNotFound]: 'Chat not found',
   [CommandError.FoundNoToken]: 'Found nothing.',
   [CommandError.FoundNoTokenNamedAs]: 'Found nothing named {0}.',
-  [CommandError.FailMethod]: 'Invalid algorithm.',
+  [CommandError.MethodNotSupported]: 'Method "{0}" not supported.',
   [CommandError.WillOverWriteOldToken]: 'This operation will overwrite your old token, use with `-f` option to overwrite this fail-safe.',
   [CommandError.MissingRequired]: 'Missing required input(s).',
+  [CommandError.QRCodeNotFound]: 'Please send QR Code with this command.',
+  [CommandError.InvalidQRCode]: 'Invalid QR Code. (hint: http schema in this qr code is not for adding OTP.)',
+  [CommandError.RequireName]: 'Requires <name> to be set.',
+  [CommandError.RequireToken]: 'Requires <token> to be set.',
 
   [CommandTranslationKey.OTPResults]: 'Your otp(s) ({0} result(s)):',
   [CommandTranslationKey.Succeed]: 'Saved.',
@@ -31,7 +35,7 @@ const autoComplete: Record<LanguageKeys, string> = {
   [ServiceError.InvalidCounter]: 'Invalid Counter',
   [ServiceError.CounterMustBePositive]: 'Counter must be positive',
   [ServiceError.CounterMustLessThan10]: 'Counter must be less than 10',
-  [ServiceError.RequireSecret]: 'Secret is required'
+  [ServiceError.RequireSecret]: 'Secret is required',
 }
 
 const description: Record<string, string> = {

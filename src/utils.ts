@@ -1,9 +1,21 @@
 import { ErrorMessage } from './commands';
 
+export function extractErrorMessage<T extends (...args: any[]) => any>(callback: T): T
 export function extractErrorMessage<T extends (...args: any[]) => Promise<any>>(callback: T): T {
   return ((...args) => {
-    return callback(...args)
-      .catch(captureMessageFromCustomErrorVariants);
+    let maybeAsync: undefined | {} | Promise<unknown> = undefined
+    try {
+      maybeAsync = callback(...args)
+    } catch (e) {
+      captureMessageFromCustomErrorVariants(e)
+    }
+    return (
+      maybeAsync
+      && typeof (maybeAsync as Promise<unknown>).catch == 'function'
+      && (maybeAsync as Promise<unknown>).catch(captureMessageFromCustomErrorVariants),
+
+      maybeAsync
+    )
   }) as T;
 }
 function captureMessageFromCustomErrorVariants(error: Error) {

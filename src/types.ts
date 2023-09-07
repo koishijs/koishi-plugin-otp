@@ -38,14 +38,17 @@ export interface HOTPConfig extends OTPConfig {
 }
 
 type OTPMap = {
-  totp: TOTPConfig
-  hotp: HOTPConfig
+  [Method.TOTP]: TOTPConfig
+  [Method.HOTP]: HOTPConfig
 }
 
 export type OTPModule = keyof OTPMap
 export type OTPOptions<M extends OTPModule> = { secret?: string } & OTPMap[M] & OTPConfig
 
-
+export const enum Method {
+  TOTP = 'totp',
+  HOTP = 'hotp'
+}
 
 export const enum VariantCommandError {
   NotInASafeContext = 'ctx-not-safe',
@@ -53,9 +56,13 @@ export const enum VariantCommandError {
   ContextNotFound = 'context-not-found',
   FoundNoToken = 'no-token-found',
   FoundNoTokenNamedAs = 'no-token-found-named',
-  FailMethod = 'fail-method',
+  MethodNotSupported = 'method-not-supported',
   WillOverWriteOldToken = 'will-overwrite-old-token',
-  MissingRequired = 'missing-inputs'
+  MissingRequired = 'missing-inputs',
+  QRCodeNotFound = 'qr-code-not-found',
+  InvalidQRCode = 'invalid-qr-code',
+  RequireName = 'require-name-to-be-set',
+  RequireToken = 'require-token-to-be-set'
 }
 
 export const enum VariantCommandTranslationKey {

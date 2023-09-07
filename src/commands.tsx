@@ -1,18 +1,18 @@
-import { h, type Channel, type Command, type Context, type Session, type User, Quester } from 'koishi'
+import { h, type Channel, type Command, type Context, type Session, type User, Quester, Element } from 'koishi'
 import { } from 'koishi-plugin-qrcode-service'
 
 import type { Config } from '.'
 import {
   type OTPDatabase,
   VariantCommandError as VariantError,
-  VariantCommandTranslationKey as VariantTranslationKey
+  VariantCommandTranslationKey as VariantTranslationKey,
+  Method
 } from './types'
 
 import { extractErrorMessage, raise } from './utils'
 
 
 declare module 'koishi' {
-
   interface Tables {
     otp: OTPDatabase
   }
@@ -50,15 +50,15 @@ export function apply(ctx: Context, options: Config) {
     .userFields(['id'])
     .usage('列出用户保存的某个或所有密码')
     .action(extractErrorMessage(async (input) => {
-      const session = input.session || raise(ErrorMessage, VariantError.ContextNotFound)
+      const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
       const bid = session.user?.id ?? raise(ErrorMessage, session.text(VariantError.UserNotFound))
 
-      const [name] = input.args
+      const [name] = input.args ?? []
 
       const otp = await read(ctx, session, { bid, name, public: input.options?.public })
 
       if (!otp.length) {
-        return <i18n path={name ? VariantError.FoundNoTokenNamedAs : VariantError.FoundNoToken}>{name}</i18n>
+        return <i18n path={name ? VariantError.FoundNoTokenNamedAs : VariantError.FoundNoToken}>{name}</i18n> as unknown as Element
       }
 
       const codes = await Promise.all(otp.map(async otp => {
@@ -74,7 +74,7 @@ export function apply(ctx: Context, options: Config) {
             code: coder.toString()
           }))
 
-      })) as { name: string, code: any }[]
+      }))
 
       return <>
         <i18n path={VariantTranslationKey.OTPResults}>
@@ -85,58 +85,26 @@ export function apply(ctx: Context, options: Config) {
           <p>name: {otp.name},</p>
           <p>code: {otp.code}</p>
         </>)}
-      </>
+      </> as unknown as Element
     }))
 
-  ctx.using(['qrcode'], (ctx) => {
-    withPublicOption(withForceOption(cmd.subcommand('.qrcode <image>')))
-      .userFields(['id'])
-      .usage('通过二维码添加、（覆盖）令牌')
-      .action(extractErrorMessage(async (input) => {
-        const session = input.session || raise(ErrorMessage, VariantError.ContextNotFound)
-        let imgUrl: string | undefined, img: Buffer | string | Quester.File | undefined
-        h('', h.transform(h.parse(input.args[0]), {
-          image(attrs) {
-            imgUrl = attrs.url
-            return ''
-          }
-        })).toString(true)
-        if (imgUrl) {
-          try {
-            img = await ctx.http.file(imgUrl)
-            const { ['text']: qrcoder } = await ctx.qrcode.decode(Buffer.from(img.data))
-            if (qrcoder) {
-              const coder = new URL(qrcoder)
-              if(coder.protocol !== 'otpauth:') return raise(ErrorMessage, VariantError.MissingRequired)
-              const method = coder.hostname || 'totp'
-              const name = coder.searchParams.get('issuer') || coder.pathname.replace(/^\//, '')
-              const token = coder.searchParams.get('secret')
-              if (name && token) {
-                return session.execute(`otp.add ${name} ${token} -m ${method} -fp`)
-              }
-            }
-          } catch (error) {
-            return raise(ErrorMessage, VariantError.MissingRequired)
-          }
-        } else {
-          return raise(ErrorMessage, VariantError.MissingRequired)
-        }
-      }))
-  })
-
-  withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
+  const otpAddCommand = withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
     .userFields(['id'])
     .usage('添加、更新（覆盖）令牌')
-    .option('method', '-m <method> 生成令牌的方法，totp | hotp', { fallback: 'totp' })
+    .option('method', '-m <method> 生成令牌的方法 当前可用的方法有: totp, hotp', { fallback: Method.TOTP })
     .action(extractErrorMessage(async (input) => {
-      const session = input.session || raise(ErrorMessage, VariantError.ContextNotFound)
+      const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
       const bid = input.session?.user?.id ?? raise(ErrorMessage, session.text(VariantError.UserNotFound))
-      const [name, token] = input.args
-      const { public: pub, force, method } = input.options ?? {}
+      const [
+        name = raise(ErrorMessage, VariantError.RequireName),
+        token = raise(ErrorMessage, VariantError.RequireToken)
+      ] = input.args ?? []
 
-      if(!['totp', 'hotp'].includes(method)) return raise(ErrorMessage, session.text(VariantError.FailMethod))
+      const { public: pub, force, method: type } = input.options ?? {};
 
-      const overwritten = await save(ctx, input.session, mergeConfig(options, { bid, name, token, public: pub, force }))
+      [Method.TOTP, Method.HOTP].includes(type) || raise(ErrorMessage, session.text(VariantError.MethodNotSupported, [type]))
+
+      const overwritten = await save(ctx, session, mergeConfig(options, { bid, name, token, public: pub, force, type }))
       return (overwritten.length
         ? <>
           <p>translation: {VariantTranslationKey.SucceedReturnOldTokens}</p>
@@ -149,18 +117,57 @@ export function apply(ctx: Context, options: Config) {
             </>
           )}
         </>
-        : <i18n path={VariantTranslationKey.Succeed}></i18n>)
+        : <i18n path={VariantTranslationKey.Succeed}></i18n>) as unknown as Element
     }))
+
+  ctx.using(['qrcode'], (ctx) => {
+    withPublicOption(withForceOption(cmd.subcommand('.qrcode <image>')))
+      .userFields(['id'])
+      .usage('通过二维码添加、（覆盖）令牌')
+      .action(extractErrorMessage(async (input) => {
+        const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
+        let img: Buffer | string | Quester.File | undefined
+
+        const imgUrl = await new Promise<string>((resolve, reject) => {
+          h('', h.transform(h.parse(input.args?.[0] ?? raise(ErrorMessage, VariantError.QRCodeNotFound)), {
+            image(attrs) {
+              resolve(attrs.url)
+              return ''
+            }
+          })).toString(true)
+        })
+
+        const options = input.options ?? {}
+
+        try {
+          img = await ctx.http.file(imgUrl)
+          const { text: qrcoder } = await ctx.qrcode.decode(Buffer.from(img.data))
+          const coder = new URL(qrcoder ?? raise(ErrorMessage, VariantError.MissingRequired))
+          coder.protocol === 'otpauth:' || raise(ErrorMessage, VariantError.InvalidQRCode)
+
+          const method = coder.hostname || Method.TOTP
+          const name = coder.searchParams.get('issuer') ?? coder.pathname.replace(/^\//, '')
+          const token = coder.searchParams.get('secret')
+
+          return (
+            name && token && otpAddCommand.execute({ session, options: { ...options, method }, args: [name, token] })
+            || undefined
+          )
+        } catch (error) {
+          return raise(ErrorMessage, VariantError.MissingRequired)
+        }
+      }))
+  })
 
 
   withPublicOption(cmd.subcommand('.rm <name>'))
     .userFields(['id'])
     .usage('移除令牌')
     .action(extractErrorMessage(async input => {
-      const session = input.session || raise(ErrorMessage, VariantError.ContextNotFound)
+      const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
       const bid = input.session?.user?.id ?? raise(ErrorMessage, session.text(VariantError.UserNotFound))
-      const [name] = input.args
-      const removed = await remove(ctx, input.session, { bid, name, public: input.options.public })
+      const [name = raise(ErrorMessage, VariantError.RequireName)] = input.args ?? []
+      const removed = await remove(ctx, session, { bid, name, public: input.options?.public })
 
       return <>
         <i18n path={VariantTranslationKey.RemovedTokens} />
@@ -172,11 +179,11 @@ export function apply(ctx: Context, options: Config) {
             <p>  | type: {row.type || VariantTranslationKey.Unknown}</p>
           </>
         )}
-      </>
+      </> as unknown as Element
     }))
 }
 
-async function remove(ctx: Context, session: Session, query: BaseQuery & Name & Public) {
+async function remove(ctx: Context, session: Session, query: BaseQuery & Name & Partial<Public>) {
   const clashes = await getToken(ctx, query)
   const { bid, name } = query
 
@@ -191,7 +198,7 @@ async function remove(ctx: Context, session: Session, query: BaseQuery & Name & 
   return clashes
 }
 
-async function save(ctx: Context, session: Session, query: Provided & BaseQuery & Name & Token & Force & Public) {
+async function save(ctx: Context, session: Session, query: Provided & Type & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
   const lockTime = Date.now()
   const { bid, name, token, salt, tokenizer, threshold, step } = query
   const clashed = await getToken(ctx, { bid, name })
@@ -218,7 +225,7 @@ async function save(ctx: Context, session: Session, query: Provided & BaseQuery 
   return clashed
 }
 
-async function read(ctx: Context, session: Session, query: BaseQuery & Name & Public) {
+async function read(ctx: Context, session: Session, query: BaseQuery & Partial<Name> & Partial<Public>) {
   const { bid, name } = query
   const rejectThisContext = rejectContext(session, query)
 
@@ -230,7 +237,7 @@ async function read(ctx: Context, session: Session, query: BaseQuery & Name & Pu
   }
 }
 
-async function getToken(ctx: Context, { bid, name }: BaseQuery & Name) {
+async function getToken(ctx: Context, { bid, name }: BaseQuery & Partial<Name>) {
   return await ctx.database.get('otp', name ? { bid, name } : { bid })
 }
 
@@ -300,4 +307,8 @@ interface Force {
 
 interface Public {
   public: boolean
+}
+
+interface Type {
+  type: Method
 }
