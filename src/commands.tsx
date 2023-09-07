@@ -194,7 +194,7 @@ async function remove(ctx: Context, session: Session<never, never>, query: BaseQ
   return clashes
 }
 
-async function save<S extends Session<never, never>>(ctx: Context, session: S, query: Provided & Type & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
+async function save(ctx: Context, session: Session<never, never>, query: Provided & Type & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
   const lockTime = Date.now()
   const { bid, name, token, salt, tokenizer, threshold, step } = query
   const clashed = await getToken(ctx, { bid, name })
