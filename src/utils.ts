@@ -7,14 +7,12 @@ export function extractErrorMessage<T extends (...args: any[]) => Promise<any>>(
     try {
       maybeAsync = callback(...args)
     } catch (e) {
-      captureMessageFromCustomErrorVariants(e)
+      return captureMessageFromCustomErrorVariants(e)
     }
     return (
-      maybeAsync
-      && typeof (maybeAsync as Promise<unknown>).catch == 'function'
-      && (maybeAsync as Promise<unknown>).catch(captureMessageFromCustomErrorVariants),
-
-      maybeAsync
+      maybeAsync && typeof (maybeAsync as Promise<unknown>).catch == 'function'
+      ? (maybeAsync as Promise<unknown>).catch(captureMessageFromCustomErrorVariants)
+      : maybeAsync
     )
   }) as T;
 }

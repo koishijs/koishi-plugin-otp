@@ -63,7 +63,8 @@ export function apply(ctx: Context, options: Config) {
 
       const codes = await Promise.all(otp.map(async otp => {
         const { type, algorithm, digits, counter, period, initial } = mergeConfig(options, otp)
-        if (!period || !counter || !initial) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
+        if (period === undefined || counter === undefined || initial === undefined) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
+
         return ctx.otp.generate(type, {
           secret: otp.token,
           algorithm, digits, counter, period, initial
