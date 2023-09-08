@@ -38,14 +38,14 @@ export interface HOTPConfig extends OTPConfig {
 }
 
 type OTPMap = {
-  [Methods.TOTP]: TOTPConfig
-  [Methods.HOTP]: HOTPConfig
+  [Method.TOTP]: TOTPConfig
+  [Method.HOTP]: HOTPConfig
 }
 
 export type OTPMethod = keyof OTPMap
 export type OTPOptions<M extends OTPMethod> = { secret?: string } & OTPMap[M] & OTPConfig
 
-export const enum Methods {
+export const enum Method {
   TOTP = 'totp',
   HOTP = 'hotp'
 }
@@ -81,10 +81,10 @@ export const enum VariantCommandTranslationKey {
 export const enum VariantServiceError {
   InvalidCounter = 'invalid-counter',
   CounterMustBePositive = 'counter-must-be-positive',
-  CounterMustLessThan10 = 'counter-must-be-lt-10',
+  CounterMustLessThan = 'counter-must-be-lt-provided',
   RequireSecret = 'require-secret',
   InvalidTokenizer = 'invalid-tokenizer',
   MethodNotSupported = 'service:method-not-supported'
 }
 
-export type LanguageKeys = VariantCommandError | VariantCommandTranslationKey | VariantServiceError
+export type LanguageKey = VariantCommandError | VariantCommandTranslationKey | VariantServiceError

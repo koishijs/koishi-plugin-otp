@@ -38,7 +38,7 @@ export class OTPService extends Service {
       case 'timestamp':
         token = Date.now().toString(36)
         break
-      default: raise(ErrorMessageKey, VariantError.InvalidTokenizer)
+      default: raise(ErrorMessageKey, VariantError.InvalidTokenizer, [tokenizer])
     }
     return Buffer.from(token + salt).toString('hex')
   }
@@ -64,7 +64,7 @@ export class OTPService extends Service {
         counter = (options as HOTPConfig).counter
         break
       }
-      default: raise(ErrorMessageKey, VariantError.MethodNotSupported)
+      default: raise(ErrorMessageKey, VariantError.MethodNotSupported, [method])
     }
 
     // TODO: the 'sha1' algorithm is unsafe, throw an warning if it is used? or throw an error?
@@ -73,7 +73,7 @@ export class OTPService extends Service {
     // check counter
     if (!counter) raise(ErrorMessageKey, VariantError.InvalidCounter)
     if (counter < 0) raise(ErrorMessageKey, VariantError.CounterMustBePositive)
-    if (counter > 10) raise(ErrorMessageKey, VariantError.CounterMustLessThan10)
+    if (counter > this.config.maxStep) raise(ErrorMessageKey, VariantError.CounterMustLessThan, [this.config.maxStep, counter])
 
     const hmac = createHmac(algorithm ?? 'sha1', secret)
     hmac.update(Buffer.from(counter.toString(16).padStart(16, '0'), 'hex'))

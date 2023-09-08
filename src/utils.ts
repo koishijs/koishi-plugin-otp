@@ -1,3 +1,4 @@
+import { LanguageKey } from './types';
 import { Argv, Session } from "koishi";
 
 export class ErrorMessage extends Error {
@@ -5,6 +6,13 @@ export class ErrorMessage extends Error {
 }
 export class ErrorMessageKey extends Error {
   name = 'Recoverable Error (raw key)'
+
+  input: {} = {}
+
+  constructor(key: LanguageKey, input?: {} ) {
+    super(key)
+    input && (this.input = input)
+  }
 }
 
 export function extractErrorMessage<TArgV extends Argv<any,any, any, any>, T extends (...args: [TArgV, ...any[]]) => any>(callback: T): T
@@ -28,7 +36,7 @@ function captureMessageFromCustomErrorVariants(session: Session<any, any> | unde
   return error instanceof ErrorMessage
     ? (error as ErrorMessage).message
     : error instanceof ErrorMessageKey
-    ? session?.text((error as ErrorMessageKey).message) ?? (error as ErrorMessageKey).message
+    ? session?.text((error as ErrorMessageKey).message, (error as ErrorMessageKey).input) ?? (error as ErrorMessageKey).message
     : throwError(error, captureMessageFromCustomErrorVariants)
 }
 export function raise<E extends new (...args: any[]) => Error>(EC: E, ...args: ConstructorParameters<E>): never {

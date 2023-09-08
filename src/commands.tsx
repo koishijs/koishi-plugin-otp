@@ -6,7 +6,7 @@ import {
   type OTPDatabase,
   VariantCommandError as VariantError,
   VariantCommandTranslationKey as VariantTranslationKey,
-  Methods
+  Method as OTPMethod
 } from './types'
 
 import { ErrorMessage, extractErrorMessage, raise } from './utils'
@@ -17,6 +17,8 @@ declare module 'koishi' {
     otp: OTPDatabase
   }
 }
+
+const otpMethods = [OTPMethod.TOTP, OTPMethod.HOTP]
 
 export const using = ['database', 'otp']
 export function apply(ctx: Context, options: Config) {
@@ -91,7 +93,7 @@ export function apply(ctx: Context, options: Config) {
   const otpAddCommand = withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
     .userFields(['id'])
     .usage('添加、更新（覆盖）令牌')
-    .option('method', '-m <method> 生成令牌的方法 当前可用的方法有: totp, hotp', { fallback: Methods.TOTP })
+    .option('method', '-m <method> 生成令牌的方法 当前可用的方法有: totp, hotp', { fallback: OTPMethod.TOTP })
     .action(extractErrorMessage(async (input) => {
       const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
       const bid = input.session?.user?.id ?? raise(ErrorMessage, session.text(VariantError.UserNotFound))
@@ -102,7 +104,7 @@ export function apply(ctx: Context, options: Config) {
 
       const { public: pub, force, method } = input.options ?? {};
 
-      [Methods.TOTP, Methods.HOTP].includes(method) || raise(ErrorMessage, session.text(VariantError.MethodNotSupported, [method]))
+      otpMethods.includes(method) || raise(ErrorMessage, session.text(VariantError.MethodNotSupported, [method]))
 
       const overwritten = await save(ctx, session, mergeConfig(options, { bid, name, token, public: pub, force, method }))
       return (overwritten.length
@@ -144,7 +146,7 @@ export function apply(ctx: Context, options: Config) {
         const coder = new URL(qrcoder ?? raise(ErrorMessage, VariantError.QRCodeNotFound))
         coder.protocol === 'otpauth:' || raise(ErrorMessage, VariantError.InvalidQRCode)
 
-        const method = coder.hostname || Methods.TOTP
+        const method = coder.hostname || OTPMethod.TOTP
         const name = coder.searchParams.get('issuer') ?? coder.pathname.replace(/^\//, '')
         const token = coder.searchParams.get('secret')
 
@@ -196,12 +198,12 @@ async function remove(ctx: Context, session: Session<never, never>, query: BaseQ
 
 async function save(ctx: Context, session: Session<never, never>, query: Provided & Method & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
   const lockTime = Date.now()
-  const { bid, name, token, salt, tokenizer, threshold, step } = query
+  const { bid, name, token, salt, tokenizer, method, threshold, step } = query
   const clashed = await getToken(ctx, { bid, name })
 
   const rejectThisContext = rejectContext(session, query)
 
-  const row = { step, threshold, name, token, updated_at: new Date(lockTime), created_at: new Date(lockTime) }
+  const row = { step, threshold, name, token, method, updated_at: new Date(lockTime), created_at: new Date(lockTime) }
   switch (true) {
     // no leaks
     case rejectThisContext: raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
@@ -303,5 +305,5 @@ interface Public {
 }
 
 interface Method {
-  method: Methods
+  method: OTPMethod
 }

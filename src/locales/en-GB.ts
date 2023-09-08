@@ -2,12 +2,12 @@ import {
   VariantCommandError as CommandError,
   VariantServiceError as ServiceError,
   VariantCommandTranslationKey as CommandTranslationKey,
-  type LanguageKeys,
+  type LanguageKey,
 } from '../types'
 import { PLUGIN_NAME, commandLocaleGen } from '../utils'
 
 
-const autoComplete: Record<LanguageKeys, string> = {
+const autoComplete: Record<LanguageKey, string> = {
   [CommandError.NotInASafeContext]: 'Should you use this plugin within private context? Use with `-p` option to overwrite this fail-safe.',
   [CommandError.UserNotFound]: 'User not found',
   [CommandError.ContextNotFound]: 'Chat not found',
@@ -34,10 +34,10 @@ const autoComplete: Record<LanguageKeys, string> = {
 
   [ServiceError.InvalidCounter]: 'Invalid Counter',
   [ServiceError.CounterMustBePositive]: 'Counter must be positive',
-  [ServiceError.CounterMustLessThan10]: 'Counter must be less than 10',
+  [ServiceError.CounterMustLessThan]: 'Counter must be less than {0}, given {1}',
   [ServiceError.RequireSecret]: 'Secret is required',
-  [ServiceError.InvalidTokenizer]: 'Invalid Tokenizer',
-  [ServiceError.MethodNotSupported]: 'Method not supported.(we support HOTP/TOTP)'
+  [ServiceError.InvalidTokenizer]: 'Invalid Tokenizer: {0}',
+  [ServiceError.MethodNotSupported]: 'Method not supported.(given {0}, we support HOTP/TOTP)'
 }
 
 const description: Record<string, string> = {

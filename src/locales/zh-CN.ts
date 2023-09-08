@@ -2,12 +2,12 @@ import {
   VariantCommandError as CommandError,
   VariantServiceError as ServiceError,
   VariantCommandTranslationKey as CommandTranslationKey,
-  type LanguageKeys,
+  type LanguageKey,
 } from '../types'
 import { PLUGIN_NAME, commandLocaleGen } from '../utils'
 
 
-const autoComplete: Record<LanguageKeys, string> = {
+const autoComplete: Record<LanguageKey, string> = {
   [CommandError.NotInASafeContext]: '请在私聊中使用。使用 `-p` 选项以覆盖此安全检查。',
   [CommandError.UserNotFound]: '用户不存在',
   [CommandError.ContextNotFound]: '消息不存在',
@@ -32,12 +32,12 @@ const autoComplete: Record<LanguageKeys, string> = {
   [CommandTranslationKey.Name]: '密码名称',
   [CommandTranslationKey.Code]: '密码',
 
-  [ServiceError.InvalidCounter]: '计数失败或这是一个无效的计数器',
+  [ServiceError.InvalidCounter]: '计数失败或这是一个无效的计数器: {0}',
   [ServiceError.CounterMustBePositive]: '计数器必须为正数',
-  [ServiceError.CounterMustLessThan10]: '计数器必须小于 10',
+  [ServiceError.CounterMustLessThan]: '计数器必须小于 {0}, 收到 {1}',
   [ServiceError.RequireSecret]: '缺少 Secret',
   [ServiceError.InvalidTokenizer]: 'Tokenizer非法',
-  [ServiceError.MethodNotSupported]: '不支持提供的生成方法(支持HOTP/TOTP)'
+  [ServiceError.MethodNotSupported]: '不支持提供的生成方法 (收到 {0}, 支持HOTP/TOTP)'
 }
 
 const description: Record<string, string> = {
