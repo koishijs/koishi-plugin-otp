@@ -7,8 +7,7 @@ import {
   type OTPOptions,
   type TOTPConfig,
   type Tokenizer,
-  VariantServiceError as VariantError,
-  VariantServiceError
+  VariantServiceError as VariantError
 } from './types'
 import type { Config } from '.'
 
@@ -39,8 +38,7 @@ export class OTPService extends Service {
       case 'timestamp':
         token = Date.now().toString(36)
         break
-      default:
-        assertNeverReached(tokenizer)
+      default: raise(ErrorMessageKey, VariantError.InvalidTokenizer)
     }
     return Buffer.from(token + salt).toString('hex')
   }
@@ -54,15 +52,19 @@ export class OTPService extends Service {
     let counter: number
 
     // check secret
-    if (!secret) raise(ErrorMessageKey, VariantServiceError.RequireSecret)
+    if (!secret) raise(ErrorMessageKey, VariantError.RequireSecret)
 
-    if (module === 'totp') {
-      const { period, initial } = options as TOTPConfig
-      counter = Math.floor((Date.now() / 1000 - initial) / period)
-    } else if (module === 'hotp') {
-      counter = (options as HOTPConfig).counter
-    } else {
-      assertNeverReached()
+    switch (module) {
+      case 'totp': {
+        const { period, initial } = options as TOTPConfig
+        counter = Math.floor((Date.now() / 1000 - initial) / period)
+        break
+      }
+      case 'hotp': {
+        counter = (options as HOTPConfig).counter
+        break
+      }
+      default: raise(ErrorMessageKey, VariantError.MethodNotSupported)
     }
 
     // TODO: the 'sha1' algorithm is unsafe, throw an warning if it is used? or throw an error?

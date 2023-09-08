@@ -12,7 +12,7 @@ const autoComplete: Record<LanguageKeys, string> = {
   [CommandError.UserNotFound]: '用户不存在',
   [CommandError.ContextNotFound]: '消息不存在',
   [CommandError.FoundNoToken]: 'Token 不存在',
-  [CommandError.FoundNoTokenNamedAs]: '找不到名称 {0}.',
+  [CommandError.FoundNoTokenNamedAs]: '找不到名为 {0} 的Token.',
   [CommandError.MethodNotSupported]: '不支持算法 {0}。',
   [CommandError.WillOverWriteOldToken]: '这将覆盖你的旧 Token ，使用 `-f` 选项以覆盖此安全检查。',
   [CommandError.MissingRequired]: '缺少必要的输入。',
@@ -35,7 +35,9 @@ const autoComplete: Record<LanguageKeys, string> = {
   [ServiceError.InvalidCounter]: '计数失败或这是一个无效的计数器',
   [ServiceError.CounterMustBePositive]: '计数器必须为正数',
   [ServiceError.CounterMustLessThan10]: '计数器必须小于 10',
-  [ServiceError.RequireSecret]: '缺少 Secret'
+  [ServiceError.RequireSecret]: '缺少 Secret',
+  [ServiceError.InvalidTokenizer]: 'Tokenizer非法',
+  [ServiceError.MethodNotSupported]: '不支持提供的生成方法(支持HOTP/TOTP)'
 }
 
 const description: Record<string, string> = {

@@ -36,6 +36,8 @@ const autoComplete: Record<LanguageKeys, string> = {
   [ServiceError.CounterMustBePositive]: 'Counter must be positive',
   [ServiceError.CounterMustLessThan10]: 'Counter must be less than 10',
   [ServiceError.RequireSecret]: 'Secret is required',
+  [ServiceError.InvalidTokenizer]: 'Invalid Tokenizer',
+  [ServiceError.MethodNotSupported]: 'Method not supported.(we support HOTP/TOTP)'
 }
 
 const description: Record<string, string> = {

@@ -11,8 +11,7 @@ export function extractErrorMessage<TArgV extends Argv<any,any, any, any>, T ext
 export function extractErrorMessage<TArgV extends Argv<any,any, any, any>, T extends (...args: [TArgV, ...any[]]) => Promise<any>>(callback: T): T {
   return ((argv, ...args) => {
     let maybeAsync: undefined | {} | Promise<unknown> = undefined
-    const { session } = argv
-    const _capture = captureMessageFromCustomErrorVariants.bind(null, session)
+    const _capture = captureMessageFromCustomErrorVariants.bind(null, argv.session)
     try {
       maybeAsync = callback(argv, ...args)
     } catch (e) {
@@ -30,7 +29,7 @@ function captureMessageFromCustomErrorVariants(session: Session<any, any> | unde
     ? (error as ErrorMessage).message
     : error instanceof ErrorMessageKey
     ? session?.text((error as ErrorMessageKey).message) ?? (error as ErrorMessageKey).message
-    : throwError(error)
+    : throwError(error, captureMessageFromCustomErrorVariants)
 }
 export function raise<E extends new (...args: any[]) => Error>(EC: E, ...args: ConstructorParameters<E>): never {
   const error = new EC(...args);
@@ -38,8 +37,8 @@ export function raise<E extends new (...args: any[]) => Error>(EC: E, ...args: C
   throw error;
 }
 
-export function throwError(raisedError: Error): never {
-  Error.captureStackTrace(raisedError, throwError);
+export function throwError(raisedError: Error, stackCapture: CallableFunction = this.caller): never {
+  Error.captureStackTrace(raisedError, stackCapture);
   throw raisedError;
 }
 

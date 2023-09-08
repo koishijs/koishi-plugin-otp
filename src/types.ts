@@ -56,7 +56,7 @@ export const enum VariantCommandError {
   ContextNotFound = 'context-not-found',
   FoundNoToken = 'no-token-found',
   FoundNoTokenNamedAs = 'no-token-found-named',
-  MethodNotSupported = 'method-not-supported',
+  MethodNotSupported = 'command:method-not-supported',
   WillOverWriteOldToken = 'will-overwrite-old-token',
   MissingRequired = 'missing-inputs',
   QRCodeNotFound = 'qr-code-not-found',
@@ -82,7 +82,9 @@ export const enum VariantServiceError {
   InvalidCounter = 'invalid-counter',
   CounterMustBePositive = 'counter-must-be-positive',
   CounterMustLessThan10 = 'counter-must-be-lt-10',
-  RequireSecret = 'require-secret'
+  RequireSecret = 'require-secret',
+  InvalidTokenizer = 'invalid-tokenizer',
+  MethodNotSupported = 'service:method-not-supported'
 }
 
 export type LanguageKeys = VariantCommandError | VariantCommandTranslationKey | VariantServiceError
