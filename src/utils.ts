@@ -23,12 +23,15 @@ function captureMessageFromCustomErrorVariants(error: Error) {
     ? (error as ErrorMessage).message
     : throwError(error)
 }
-export function raise<E extends new (...args: any[]) => Error>(Constructor: E, ...args: ConstructorParameters<E>): never {
-  throw new Constructor(...args);
+export function raise<E extends new (...args: any[]) => Error>(EC: E, ...args: ConstructorParameters<E>): never {
+  const error = new EC(...args);
+  Error.captureStackTrace(error, raise);
+  throw error;
 }
 
-export function throwError(e: Error): never {
-  throw e
+export function throwError(raisedError: Error): never {
+  Error.captureStackTrace(raisedError, throwError);
+  throw raisedError;
 }
 
 export function assertNeverReached(input?: never): never {
