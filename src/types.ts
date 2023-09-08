@@ -4,7 +4,7 @@ export interface OTPDatabase {
   id: number
   bid: number
   name: string
-  type: OTPModule
+  method: OTPMethod
   token: string
   step: number
   threshold: number
@@ -38,14 +38,14 @@ export interface HOTPConfig extends OTPConfig {
 }
 
 type OTPMap = {
-  [Method.TOTP]: TOTPConfig
-  [Method.HOTP]: HOTPConfig
+  [Methods.TOTP]: TOTPConfig
+  [Methods.HOTP]: HOTPConfig
 }
 
-export type OTPModule = keyof OTPMap
-export type OTPOptions<M extends OTPModule> = { secret?: string } & OTPMap[M] & OTPConfig
+export type OTPMethod = keyof OTPMap
+export type OTPOptions<M extends OTPMethod> = { secret?: string } & OTPMap[M] & OTPConfig
 
-export const enum Method {
+export const enum Methods {
   TOTP = 'totp',
   HOTP = 'hotp'
 }
@@ -73,7 +73,7 @@ export const enum VariantCommandTranslationKey {
   RemovedTokens = 'removed-tokens',
   Token = 'token',
   Algo = 'algorithm',
-  Type = 'type',
+  Method = 'method',
   Name = 'name',
   Code = 'code'
 }

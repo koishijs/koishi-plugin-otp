@@ -3,7 +3,7 @@ import { createHmac } from 'node:crypto'
 import { Context, Service } from 'koishi'
 import {
   type HOTPConfig,
-  type OTPModule,
+  type OTPMethod,
   type OTPOptions,
   type TOTPConfig,
   type Tokenizer,
@@ -43,8 +43,8 @@ export class OTPService extends Service {
     return Buffer.from(token + salt).toString('hex')
   }
 
-  public async generate<M extends OTPModule>(
-    module: M,
+  public async generate<M extends OTPMethod>(
+    method: M,
     options: OTPOptions<M>
   ) {
     const { algorithm, digits } = options
@@ -54,7 +54,7 @@ export class OTPService extends Service {
     // check secret
     if (!secret) raise(ErrorMessageKey, VariantError.RequireSecret)
 
-    switch (module) {
+    switch (method) {
       case 'totp': {
         const { period, initial } = options as TOTPConfig
         counter = Math.floor((Date.now() / 1000 - initial) / period)

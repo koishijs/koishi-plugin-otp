@@ -28,7 +28,7 @@ const autoComplete: Record<LanguageKeys, string> = {
   [CommandTranslationKey.RemovedTokens]: 'Token 已删除',
   [CommandTranslationKey.Token]: 'Token',
   [CommandTranslationKey.Algo]: '加密算法',
-  [CommandTranslationKey.Type]: '类型 (TOTP/HOTP)',
+  [CommandTranslationKey.Method]: '生成方法 (TOTP/HOTP)',
   [CommandTranslationKey.Name]: '密码名称',
   [CommandTranslationKey.Code]: '密码',
 

@@ -28,7 +28,7 @@ const autoComplete: Record<LanguageKeys, string> = {
   [CommandTranslationKey.RemovedTokens]: 'Removed Tokens',
   [CommandTranslationKey.Token]: 'Token',
   [CommandTranslationKey.Algo]: 'Algorithm',
-  [CommandTranslationKey.Type]: 'Type',
+  [CommandTranslationKey.Method]: 'Method (TOTP/HOTP)',
   [CommandTranslationKey.Name]: 'Name',
   [CommandTranslationKey.Code]: 'Code',
 

@@ -6,7 +6,7 @@ import {
   type OTPDatabase,
   VariantCommandError as VariantError,
   VariantCommandTranslationKey as VariantTranslationKey,
-  Method
+  Methods
 } from './types'
 
 import { ErrorMessage, extractErrorMessage, raise } from './utils'
@@ -25,7 +25,7 @@ export function apply(ctx: Context, options: Config) {
     bid: 'unsigned',
     name: 'string',
     token: 'text',
-    type: 'string', // totp | hotp
+    method: 'string', // totp | hotp
     step: {
       type: 'integer',
       initial: options.maxStep
@@ -62,10 +62,10 @@ export function apply(ctx: Context, options: Config) {
       }
 
       const codes = await Promise.all(otp.map(async otp => {
-        const { type, algorithm, digits, counter, period, initial } = mergeConfig(options, otp)
+        const { method, algorithm, digits, counter, period, initial } = mergeConfig(options, otp)
         if (period === undefined || counter === undefined || initial === undefined) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
 
-        return await ctx.otp.generate(type, {
+        return await ctx.otp.generate(method, {
           secret: otp.token,
           algorithm, digits, counter, period, initial
         })
@@ -91,7 +91,7 @@ export function apply(ctx: Context, options: Config) {
   const otpAddCommand = withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
     .userFields(['id'])
     .usage('添加、更新（覆盖）令牌')
-    .option('method', '-m <method> 生成令牌的方法 当前可用的方法有: totp, hotp', { fallback: Method.TOTP })
+    .option('method', '-m <method> 生成令牌的方法 当前可用的方法有: totp, hotp', { fallback: Methods.TOTP })
     .action(extractErrorMessage(async (input) => {
       const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
       const bid = input.session?.user?.id ?? raise(ErrorMessage, session.text(VariantError.UserNotFound))
@@ -100,11 +100,11 @@ export function apply(ctx: Context, options: Config) {
         token = raise(ErrorMessage, VariantError.RequireToken)
       ] = input.args ?? []
 
-      const { public: pub, force, method: type } = input.options ?? {};
+      const { public: pub, force, method } = input.options ?? {};
 
-      [Method.TOTP, Method.HOTP].includes(type) || raise(ErrorMessage, session.text(VariantError.MethodNotSupported, [type]))
+      [Methods.TOTP, Methods.HOTP].includes(method) || raise(ErrorMessage, session.text(VariantError.MethodNotSupported, [method]))
 
-      const overwritten = await save(ctx, session, mergeConfig(options, { bid, name, token, public: pub, force, type }))
+      const overwritten = await save(ctx, session, mergeConfig(options, { bid, name, token, public: pub, force, method }))
       return (overwritten.length
         ? <>
           <p>translation: {VariantTranslationKey.SucceedReturnOldTokens}</p>
@@ -113,7 +113,7 @@ export function apply(ctx: Context, options: Config) {
               <p>[{row.name}] ({row.created_at.toLocaleString()})</p>
               <p>  | token: {row.token}</p>
               <p>  | algo: {row.algorithm || VariantTranslationKey.Unknown}</p>
-              <p>  | type: {row.type || VariantTranslationKey.Unknown}</p>
+              <p>  | method: {row.method || VariantTranslationKey.Unknown}</p>
             </>
           )}
         </>
@@ -144,7 +144,7 @@ export function apply(ctx: Context, options: Config) {
         const coder = new URL(qrcoder ?? raise(ErrorMessage, VariantError.QRCodeNotFound))
         coder.protocol === 'otpauth:' || raise(ErrorMessage, VariantError.InvalidQRCode)
 
-        const method = coder.hostname || Method.TOTP
+        const method = coder.hostname || Methods.TOTP
         const name = coder.searchParams.get('issuer') ?? coder.pathname.replace(/^\//, '')
         const token = coder.searchParams.get('secret')
 
@@ -172,7 +172,7 @@ export function apply(ctx: Context, options: Config) {
             <p>[{row.name}] ({row.created_at.toLocaleString()})</p>
             <p>  | token: {row.token}</p>
             <p>  | algo: {row.algorithm || VariantTranslationKey.Unknown}</p>
-            <p>  | type: {row.type || VariantTranslationKey.Unknown}</p>
+            <p>  | method: {row.method || VariantTranslationKey.Unknown}</p>
           </>
         )}
       </> as unknown as Element
@@ -194,7 +194,7 @@ async function remove(ctx: Context, session: Session<never, never>, query: BaseQ
   return clashes
 }
 
-async function save(ctx: Context, session: Session<never, never>, query: Provided & Type & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
+async function save(ctx: Context, session: Session<never, never>, query: Provided & Method & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
   const lockTime = Date.now()
   const { bid, name, token, salt, tokenizer, threshold, step } = query
   const clashed = await getToken(ctx, { bid, name })
@@ -267,7 +267,7 @@ function ReturnToken(props: { row: OTPDatabase }) {
   return <text>[{props.row.id}] (<i18n path="created-at">{props.row.created_at}</i18n>)
     <i18n path={VariantTranslationKey.Token}>{props.row.token}</i18n>
     <i18n path={VariantTranslationKey.Algo}>{props.row.algorithm}</i18n>
-    <i18n path={VariantTranslationKey.Type}>{props.row.type}</i18n>
+    <i18n path={VariantTranslationKey.Method}>{props.row.method}</i18n>
   </text>
 }
 
@@ -302,6 +302,6 @@ interface Public {
   public: boolean
 }
 
-interface Type {
-  type: Method
+interface Method {
+  method: Methods
 }
