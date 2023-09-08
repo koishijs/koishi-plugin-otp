@@ -9,7 +9,7 @@ import {
   Method
 } from './types'
 
-import { extractErrorMessage, raise } from './utils'
+import { ErrorMessage, extractErrorMessage, raise } from './utils'
 
 
 declare module 'koishi' {
@@ -65,11 +65,10 @@ export function apply(ctx: Context, options: Config) {
         const { type, algorithm, digits, counter, period, initial } = mergeConfig(options, otp)
         if (period === undefined || counter === undefined || initial === undefined) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
 
-        return ctx.otp.generate(type, {
+        return await ctx.otp.generate(type, {
           secret: otp.token,
           algorithm, digits, counter, period, initial
         })
-          .catch(() => 'error')
           .then(coder => ({
             name: otp.name,
             code: coder.toString()
@@ -280,9 +279,6 @@ function OTP(props: { otp: { name: string, code: any } }) {
   </text>
 }
 
-export class ErrorMessage extends Error {
-  name = 'Recoverable Error'
-}
 
 interface BaseQuery {
   bid: number

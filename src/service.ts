@@ -1,3 +1,4 @@
+
 import { createHmac } from 'node:crypto'
 import { Context, Service } from 'koishi'
 import {
@@ -11,7 +12,7 @@ import {
 } from './types'
 import type { Config } from '.'
 
-import { PLUGIN_NAME, assertNeverReached, raise } from './utils'
+import { PLUGIN_NAME, assertNeverReached, raise, ErrorMessageKey } from './utils'
 
 declare module 'koishi' {
   interface Context {
@@ -53,7 +54,7 @@ export class OTPService extends Service {
     let counter: number
 
     // check secret
-    if (!secret) throw new Error(VariantServiceError.RequireSecret)
+    if (!secret) raise(ErrorMessageKey, VariantServiceError.RequireSecret)
 
     if (module === 'totp') {
       const { period, initial } = options as TOTPConfig
@@ -68,9 +69,9 @@ export class OTPService extends Service {
     // in RFC 6238 and RFC 4226 , it is recommended to use 'sha2' (sha256, sha512, etc.) instead of 'sha1'
 
     // check counter
-    if (!counter) throw new Error(VariantError.InvalidCounter)
-    if (counter < 0) throw new Error(VariantError.CounterMustBePositive)
-    if (counter > 10) throw new Error(VariantError.CounterMustLessThan10)
+    if (!counter) raise(ErrorMessageKey, VariantError.InvalidCounter)
+    if (counter < 0) raise(ErrorMessageKey, VariantError.CounterMustBePositive)
+    if (counter > 10) raise(ErrorMessageKey, VariantError.CounterMustLessThan10)
 
     const hmac = createHmac(algorithm ?? 'sha1', secret)
     hmac.update(Buffer.from(counter.toString(16).padStart(16, '0'), 'hex'))

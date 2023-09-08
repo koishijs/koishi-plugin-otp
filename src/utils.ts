@@ -1,24 +1,35 @@
-import { ErrorMessage } from './commands';
+import { Argv, Session } from "koishi";
 
-export function extractErrorMessage<T extends (...args: any[]) => any>(callback: T): T
-export function extractErrorMessage<T extends (...args: any[]) => Promise<any>>(callback: T): T {
-  return ((...args) => {
+export class ErrorMessage extends Error {
+  name = 'Recoverable Error'
+}
+export class ErrorMessageKey extends Error {
+  name = 'Recoverable Error (raw key)'
+}
+
+export function extractErrorMessage<TArgV extends Argv<any,any, any, any>, T extends (...args: [TArgV, ...any[]]) => any>(callback: T): T
+export function extractErrorMessage<TArgV extends Argv<any,any, any, any>, T extends (...args: [TArgV, ...any[]]) => Promise<any>>(callback: T): T {
+  return ((argv, ...args) => {
     let maybeAsync: undefined | {} | Promise<unknown> = undefined
+    const { session } = argv
+    const _capture = captureMessageFromCustomErrorVariants.bind(null, session)
     try {
-      maybeAsync = callback(...args)
+      maybeAsync = callback(argv, ...args)
     } catch (e) {
-      return captureMessageFromCustomErrorVariants(e)
+      return _capture(e)
     }
     return (
       maybeAsync && typeof (maybeAsync as Promise<unknown>).catch == 'function'
-      ? (maybeAsync as Promise<unknown>).catch(captureMessageFromCustomErrorVariants)
+      ? (maybeAsync as Promise<unknown>).catch(_capture)
       : maybeAsync
     )
   }) as T;
 }
-function captureMessageFromCustomErrorVariants(error: Error) {
+function captureMessageFromCustomErrorVariants(session: Session<any, any> | undefined, error: Error) {
   return error instanceof ErrorMessage
     ? (error as ErrorMessage).message
+    : error instanceof ErrorMessageKey
+    ? session?.text((error as ErrorMessageKey).message) ?? (error as ErrorMessageKey).message
     : throwError(error)
 }
 export function raise<E extends new (...args: any[]) => Error>(EC: E, ...args: ConstructorParameters<E>): never {
