@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-otp",
   "description": "one time password",
-  "version": "0.0.5",
+  "version": "0.1.0-alpha.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "author": {
@@ -23,8 +23,8 @@
   },
   "koishi": {
     "description": {
-      "zh_CN": "OTP 验证码服务",
-      "en_US": "the one time password service"
+      "zh": "OTP 验证码服务",
+      "en": "the one time password service"
     },
     "service": {
       "implements": ["otp"],

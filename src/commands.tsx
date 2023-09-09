@@ -93,7 +93,7 @@ export function apply(ctx: Context, options: Config) {
   const otpAddCommand = withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
     .userFields(['id'])
     .usage('添加、更新（覆盖）令牌')
-    .option('method', '-m <method> 生成令牌的方法 当前可用的方法有: totp, hotp', { fallback: OTPMethod.TOTP })
+    .option('method', '-m <method>', { fallback: OTPMethod.TOTP })
     .action(extractErrorMessage(async (input) => {
       const session = input.session ?? raise(ErrorMessage, VariantError.ContextNotFound)
       const bid = input.session?.user?.id ?? raise(ErrorMessage, session.text(VariantError.UserNotFound))
@@ -240,10 +240,10 @@ async function getToken(ctx: Context, { bid, name }: BaseQuery & Partial<Name>) 
 }
 
 function withPublicOption<T1 extends keyof User, T2 extends keyof Channel, T3 extends any[], T4 extends {}>(input: Command<T1, T2, T3, T4>) {
-  return input.option('public', '-p 无视安全隐患，允许在非私信环境下使用。')
+  return input.option('public', '-p')
 }
 function withForceOption<T1 extends keyof User, T2 extends keyof Channel, T3 extends any[], T4 extends {}>(input: Command<T1, T2, T3, T4>) {
-  return input.option('force', '-f 无视安全隐患，覆盖已经保存的token。在私信环境或“允许在非私信环境下使用”时会返回旧token。')
+  return input.option('force', '-f')
 }
 
 

@@ -23,6 +23,7 @@ OTP 服务支持以下算法：
 ### 命令
 
 - `otp [name]`: 列出用户保存的某个或所有密码。
+- `otp.qrcode <image>`: 通过二维码添加（需要 qrcode 服务）。
 - `otp.add <name> <token>`: 添加或覆盖认证账号。
 - `otp.rm <name>`: 移除令牌。
 

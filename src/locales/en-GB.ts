@@ -11,7 +11,7 @@ const autoComplete: Record<LanguageKey, string> = {
   [CommandError.NotInASafeContext]: 'Should you use this plugin within private context? Use with `-p` option to overwrite this fail-safe.',
   [CommandError.UserNotFound]: 'User not found',
   [CommandError.ContextNotFound]: 'Chat not found',
-  [CommandError.FoundNoToken]: 'Found nothing.',
+  [CommandError.FoundNoToken]: 'Found nothing, use `otp.add` to add a token first.',
   [CommandError.FoundNoTokenNamedAs]: 'Found nothing named {0}.',
   [CommandError.MethodNotSupported]: 'Method "{0}" not supported.',
   [CommandError.WillOverWriteOldToken]: 'This operation will overwrite your old token, use with `-f` option to overwrite this fail-safe.',
@@ -49,9 +49,9 @@ const description: Record<string, string> = {
 
 const options: Record<keyof typeof description, Record<string, string>> = {
   add: {
-    force: 'Force overwrite old token',
-    public: 'Use in public environment',
-    method: 'Algorithm [TOTP/HOTP]'
+    force: 'Overwrite old token. Will return old token if used in private environment or with `-p` option.',
+    public: 'Allow to use this command in public environment.',
+    method: 'Method to generate token. Currently supported methods: totp, hotp'
   }
 }
 

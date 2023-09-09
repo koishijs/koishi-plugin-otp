@@ -8,16 +8,16 @@ import { PLUGIN_NAME, commandLocaleGen } from '../utils'
 
 
 const autoComplete: Record<LanguageKey, string> = {
-  [CommandError.NotInASafeContext]: '请在私聊中使用。使用 `-p` 选项以覆盖此安全检查。',
+  [CommandError.NotInASafeContext]: '你试图在一个公共环境下暴露 Token。是认真的吗? 使用 `-p` 选项以执行。',
   [CommandError.UserNotFound]: '用户不存在',
-  [CommandError.ContextNotFound]: '消息不存在',
-  [CommandError.FoundNoToken]: 'Token 不存在',
-  [CommandError.FoundNoTokenNamedAs]: '找不到名为 {0} 的Token.',
-  [CommandError.MethodNotSupported]: '不支持算法 {0}。',
-  [CommandError.WillOverWriteOldToken]: '这将覆盖你的旧 Token ，使用 `-f` 选项以覆盖此安全检查。',
+  [CommandError.ContextNotFound]: '消息上下文不存在',
+  [CommandError.FoundNoToken]: '找不到任何令牌，请先使用 `otp.add` 命令添加令牌。',
+  [CommandError.FoundNoTokenNamedAs]: '找不到名为 {0} 的令牌',
+  [CommandError.MethodNotSupported]: '尚未支持算法 {0}。',
+  [CommandError.WillOverWriteOldToken]: '这将覆盖你的旧令牌，使用 `-f` 选项以确定覆盖。',
   [CommandError.MissingRequired]: '缺少必要的输入。',
   [CommandError.QRCodeNotFound]: '需要一并发送二维码。',
-  [CommandError.InvalidQRCode]: '非法的二维码。（提示: 本二维码中的HTTP Schema不是添加OTP所用的。）',
+  [CommandError.InvalidQRCode]: '非法的二维码。（提示: 本二维码中的 HTTP Schema 不是添加 OTP 所用的。）',
   [CommandError.RequireName]: '需要提供 <name>',
   [CommandError.RequireToken]: '需要提供 <token>',
 
@@ -25,7 +25,7 @@ const autoComplete: Record<LanguageKey, string> = {
   [CommandTranslationKey.Succeed]: '已保存。',
   [CommandTranslationKey.SucceedReturnOldTokens]: '这是您最后一次看到此令牌。如果将来需要此令牌，请立即保存。',
   [CommandTranslationKey.Unknown]: '未知错误。',
-  [CommandTranslationKey.RemovedTokens]: 'Token 已删除',
+  [CommandTranslationKey.RemovedTokens]: '令牌已删除',
   [CommandTranslationKey.Token]: 'Token',
   [CommandTranslationKey.Algo]: '加密算法',
   [CommandTranslationKey.Method]: '生成方法 (TOTP/HOTP)',
@@ -36,8 +36,8 @@ const autoComplete: Record<LanguageKey, string> = {
   [ServiceError.CounterMustBePositive]: '计数器必须为正数',
   [ServiceError.CounterMustLessThan]: '计数器必须小于 {0}, 收到 {1}',
   [ServiceError.RequireSecret]: '缺少 Secret',
-  [ServiceError.InvalidTokenizer]: 'Tokenizer非法',
-  [ServiceError.MethodNotSupported]: '不支持提供的生成方法 (收到 {0}, 支持HOTP/TOTP)'
+  [ServiceError.InvalidTokenizer]: '错误的令牌生成方法',
+  [ServiceError.MethodNotSupported]: '不支持提供的生成方法 (收到 {0}, 支持 HOTP/TOTP)'
 }
 
 const description: Record<string, string> = {
@@ -49,9 +49,9 @@ const description: Record<string, string> = {
 
 const options: Record<keyof typeof description, Record<string, string>> = {
   add: {
-    force: '强制覆盖旧令牌',
-    public: '在公开环境中使用',
-    method: '算法 [TOTP/HOTP]'
+    force: '无视安全隐患，覆盖已经保存的 token。在私信环境或“允许在非私信环境下使用”时会返回旧 token。',
+    public: '无视安全隐患，允许在非私信环境下使用。',
+    method: '生成令牌的方法 当前可用的方法有: totp, hotp'
   }
 }
 
