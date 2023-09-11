@@ -21,6 +21,15 @@
   "bugs": {
     "url": "https://github.com/koishijs/koishi-plugin-otp/issues"
   },
+  "scripts": {
+    "build": "yakumo build",
+    "docs:dev": "vitepress dev docs --open",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs",
+    "bump": "yakumo version",
+    "dep": "yakumo upgrade",
+    "pub": "yakumo publish"
+  },
   "koishi": {
     "description": {
       "zh": "OTP 验证码服务",
@@ -44,10 +53,22 @@
   ],
   "devDependencies": {
     "@koishijs/client": "^5.11.0",
-    "koishi-plugin-qrcode-service": "^0.0.1"
+    "koishi-plugin-qrcode-service": "^0.0.1",
+    "esbuild": "^0.14.54",
+    "esbuild-register": "^3.4.2",
+    "typescript": "^5.1.0",
+    "yakumo": "^0.3.13",
+    "yakumo-esbuild": "^0.3.25",
+    "yakumo-esbuild-yaml": "^0.3.1",
+    "yakumo-mocha": "^0.3.1",
+    "yakumo-publish": "^0.3.4",
+    "yakumo-publish-sync": "^0.3.3",
+    "yakumo-tsc": "^0.3.12",
+    "yakumo-upgrade": "^0.3.3",
+    "yakumo-version": "^0.3.4"
   },
   "peerDependencies": {
-    "koishi": "^4.12.0",
+    "koishi": "^4.12.1",
     "@koishijs/plugin-console": "^5.11.0"
   }
 }
