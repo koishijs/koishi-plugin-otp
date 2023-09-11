@@ -32,8 +32,11 @@
   },
   "koishi": {
     "description": {
-      "zh": "OTP 验证码服务",
-      "en": "the one time password service"
+      "zh": "2FA(OTP) 可以用于二步认证的验证码服务，目前支持 TOTP、HOTP 算法。",
+      "en": "2FA(OTP) can be used for two-step verification of verification code service, currently supports TOTP, HOTP algorithm.",
+      "jp": "2FA(OTP) は、現在TOTP、HOTPアルゴリズムをサポートしている検証コードサービスの2段階認証に使用できます。",
+      "de": "2FA(OTP) kann für die Zwei-Faktor-Authentifizierung des Verifizierungsdienstes verwendet werden und unterstützt derzeit die TOTP- und HOTP-Algorithmen.",
+      "ru": "2FA(OTP) можно использовать для двухэтапной проверки службы проверки кода, в настоящее время поддерживаются алгоритмы TOTP, HOTP."
     },
     "service": {
       "implements": ["otp"],
