@@ -75,6 +75,8 @@ export class OTPService extends Service {
     if (!counter) raise(ErrorMessageKey, VariantError.InvalidCounter)
     if (counter < 0) raise(ErrorMessageKey, VariantError.CounterMustBePositive)
     if (counter > this.config.maxStep && method === 'hotp') raise(ErrorMessageKey, VariantError.CounterMustLessThan, [this.config.maxStep, counter])
+    // if (counter === 0 && method === 'totp') counter = 1
+ 
     const hmac = createHmac(algorithm || 'sha1', secret)
     hmac.update(Buffer.from(counter.toString(16).padStart(16, '0'), 'hex'))
     const digest = hmac.digest()

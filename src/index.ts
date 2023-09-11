@@ -3,7 +3,7 @@ import { Context, Schema } from 'koishi'
 
 import { OTPService } from "./service"
 import * as Commands from './commands'
-import { Tokenizer, PASSAlgorithm } from './types'
+import { Tokenizer, PASSAlgorithm, HMACAlgorithm } from './types'
 import enGB from './locales/en-GB'
 import zhCN from './locales/zh-CN'
 
@@ -23,7 +23,8 @@ export interface Config {
   qrcode: boolean
   maxStep: number
   maxThreshold: number
-  algorithm: PASSAlgorithm
+  algorithm: HMACAlgorithm
+  pscs: PASSAlgorithm
 }
 
 export const Config: Schema<Config> = Schema.intersect([
@@ -32,13 +33,14 @@ export const Config: Schema<Config> = Schema.intersect([
       'uuid',
       'random',
       'timestamp']).default('uuid').description('令牌生成方式'),
-    salt: Schema.string().role('secret').description('密钥盐（为保证账户安全性，请尽量使用复杂密码）').required(),
+    salt: Schema.string().role('secret').description('存储密码（为保证账户安全性，请尽量使用复杂密码）').required(),
     qrcode: Schema.boolean().default(false).description('[⚠ 实验性]是否使用二维码识别（需要 qrcode 服务）'),
   }).description('基础配置'),
   Schema.object({
     maxStep: Schema.number().min(10).max(100).default(30).description('默认允许的最大步长'),
     maxThreshold: Schema.number().min(3).max(10).default(5).description('默认允许的最大重试步数'),
-    algorithm: Schema.union([PASSAlgorithm.AES128ECB, PASSAlgorithm.AES256ECB]).default(PASSAlgorithm.AES128ECB).description('存储算法'),
+    pscs: Schema.union([PASSAlgorithm.AES128ECB, PASSAlgorithm.AES256ECB]).default(PASSAlgorithm.AES128ECB).description('密码存储加密算法'),
+    algorithm: Schema.union([HMACAlgorithm.SHA1, HMACAlgorithm.SHA256, HMACAlgorithm.SHA512]).default(HMACAlgorithm.SHA512).description('加密算法'),
   }).description('安全性配置'),
   Schema.union([
     Schema.object({

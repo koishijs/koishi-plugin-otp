@@ -64,7 +64,7 @@ export function apply(ctx: Context, options: Config) {
         if (period === undefined || counter === undefined || initial === undefined) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
 
         const code = await ctx.otp.generate(method, {
-          secret: cihper(options.salt, options.algorithm).decrypt(otp.token), // decrypt token
+          secret: cihper(options.salt, options.pscs).decrypt(otp.token), // decrypt token
           algorithm, digits, counter, period, initial
         })
           .then(coder => ({
@@ -74,12 +74,12 @@ export function apply(ctx: Context, options: Config) {
         return code
       }))
 
-      return <>
-        <i18n path={VariantTranslationKey.OTPResults}>
+      return <message>
+        <p><i18n path={VariantTranslationKey.OTPResults}>
           {codes.length}
-        </i18n>
-        {codes.map(otp => <OTP otp={otp} key={otp.name} />)}
-      </>
+        </i18n></p>
+        <>{codes.map(otp => <p>{otp.name}: {otp.code}</p>)}</>
+      </message>
     }))
 
   const otpAddCommand = withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
@@ -95,17 +95,24 @@ export function apply(ctx: Context, options: Config) {
       ] = input.args ?? []
 
       const { public: pub, force, method } = input.options ?? {};
-      const { maxStep, salt, algorithm } = options
+      const { maxStep, salt, pscs, algorithm } = options
+      const confByMethod = method === OTPMethod.TOTP ? { period: maxStep, initial: Math.floor(Date.now() / 1000) } : method === OTPMethod.HOTP ? { counter: maxStep / 10 } : {}
 
       otpMethods.includes(method) || raise(ErrorMessage, session.text(VariantError.MethodNotSupported, [method]))
 
-      const overwritten = await save(ctx, session, { algorithm, bid, name, token, public: pub, force, method, maxStep, salt })
+      const overwritten = await save(ctx, session, { pscs, bid, name, token, public: pub, force, method, maxStep, salt, algorithm })
+
+      // const code = await ctx.otp.generate(method, {
+      //   secret: token,
+      //   algorithm, ...confByMethod
+      // })
+
       return (overwritten.length
         ? <>
           <p>translation: {VariantTranslationKey.SucceedReturnOldTokens}</p>
-          {overwritten.map(row => <ReturnToken row={row} key={row.id} />)}
+          {overwritten.map(row => <ReturnToken row={row}/>)}
         </>
-        : <i18n path={VariantTranslationKey.Succeed}></i18n>)
+        : <message><i18n path={VariantTranslationKey.Succeed}></i18n></message>)
     }))
 
   ctx.using(['qrcode'], (ctx) => {
@@ -156,7 +163,7 @@ export function apply(ctx: Context, options: Config) {
 
       return <>
         <i18n path={VariantTranslationKey.RemovedTokens} />
-        {removed.map(row => <ReturnToken row={row} key={row.id} />)}
+        {removed.map(row => <ReturnToken row={row} />)}
       </>
     }))
 }
@@ -176,7 +183,7 @@ async function remove(ctx: Context, session: Session<never, never>, query: BaseQ
 }
 
 async function save(ctx: Context, session: Session<never, never>, query: Provided & Method & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
-  const { bid, name, token, salt, method, algorithm, maxStep, step } = query
+  const { bid, name, token, salt, method, pscs, maxStep, step, algorithm } = query
   const now = Date.now()
   const confByMethod = method === OTPMethod.TOTP ? { period: step ?? maxStep, initial: Math.floor(now / 1000) }
     : method === OTPMethod.HOTP ? { counter: step ?? maxStep / 10 }
@@ -187,7 +194,8 @@ async function save(ctx: Context, session: Session<never, never>, query: Provide
   const row = {
     bid,
     name,
-    token: cihper(salt, algorithm).encrypt(token), // use salt to encrypt token
+    token: cihper(salt, pscs).encrypt(token), // use salt to encrypt token
+    algorithm,
     method,
     updated_at: new Date(now),
     created_at: new Date(now)
@@ -239,27 +247,18 @@ function rejectContext(session: Session<never, never>, { public: pub = false }: 
 
 function ReturnToken(props: { row: OTPDatabase }) {
   // TODO refine returning rows
-  return <text>[{props.row.id}] (<i18n path="created-at">{props.row.created_at}</i18n>)
+  return <p>[{props.row.id}] (<i18n path="created-at">{props.row.created_at}</i18n>)
     <i18n path={VariantTranslationKey.Token}>{props.row.token}</i18n>
     <i18n path={VariantTranslationKey.Algo}>{props.row.algorithm}</i18n>
     <i18n path={VariantTranslationKey.Method}>{props.row.method}</i18n>
-  </text>
+  </p>
 }
-
-function OTP(props: { otp: { name: string, code: any } }) {
-  // TODO refine returning rows
-  return <text>
-    <i18n path={VariantTranslationKey.Name}>{props.otp.name}</i18n>
-    <i18n path={VariantTranslationKey.Code}>{props.otp.code}</i18n>
-  </text>
-}
-
 
 interface BaseQuery {
   bid: number
 }
 
-interface Provided extends Pick<Config, 'salt' | 'algorithm' | 'maxStep'> {
+interface Provided extends Pick<Config, 'salt' | 'pscs' | 'maxStep' | 'algorithm'> {
   step?: number
 }
 
