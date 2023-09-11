@@ -60,7 +60,7 @@ export function apply(ctx: Context, options: Config) {
       const otp = await read(ctx, session, { bid, name, public: input.options?.public })
 
       if (!otp.length) {
-        return <i18n path={name ? VariantError.FoundNoTokenNamedAs : VariantError.FoundNoToken}>{name}</i18n> as unknown as Element
+        return <i18n path={name ? VariantError.FoundNoTokenNamedAs : VariantError.FoundNoToken}>{name}</i18n>
       }
 
       const codes = await Promise.all(otp.map(async otp => {
@@ -82,12 +82,8 @@ export function apply(ctx: Context, options: Config) {
         <i18n path={VariantTranslationKey.OTPResults}>
           {codes.length}
         </i18n>
-        {/* {codes.map(otp => <OTP otp={otp}></OTP>)} */}
-        {codes.map(otp => <>
-          <p>name: {otp.name},</p>
-          <p>code: {otp.code}</p>
-        </>)}
-      </> as unknown as Element
+        {codes.map(otp => <OTP otp={otp} key={otp.name} />)}
+      </>
     }))
 
   const otpAddCommand = withPublicOption(withForceOption(cmd.subcommand('.add <name> <token>')))
@@ -110,16 +106,9 @@ export function apply(ctx: Context, options: Config) {
       return (overwritten.length
         ? <>
           <p>translation: {VariantTranslationKey.SucceedReturnOldTokens}</p>
-          {overwritten.map(row =>
-            <>
-              <p>[{row.name}] ({row.created_at.toLocaleString()})</p>
-              <p>  | token: {row.token}</p>
-              <p>  | algo: {row.algorithm || VariantTranslationKey.Unknown}</p>
-              <p>  | method: {row.method || VariantTranslationKey.Unknown}</p>
-            </>
-          )}
+          {overwritten.map(row => <ReturnToken row={row} key={row.id} />)}
         </>
-        : <i18n path={VariantTranslationKey.Succeed}></i18n>) as unknown as Element
+        : <i18n path={VariantTranslationKey.Succeed}></i18n>)
     }))
 
   ctx.using(['qrcode'], (ctx) => {
@@ -169,15 +158,8 @@ export function apply(ctx: Context, options: Config) {
 
       return <>
         <i18n path={VariantTranslationKey.RemovedTokens} />
-        {removed.map(row =>
-          <>
-            <p>[{row.name}] ({row.created_at.toLocaleString()})</p>
-            <p>  | token: {row.token}</p>
-            <p>  | algo: {row.algorithm || VariantTranslationKey.Unknown}</p>
-            <p>  | method: {row.method || VariantTranslationKey.Unknown}</p>
-          </>
-        )}
-      </> as unknown as Element
+        {removed.map(row => <ReturnToken row={row} key={row.id} />)}
+      </>
     }))
 }
 
