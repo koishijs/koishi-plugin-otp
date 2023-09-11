@@ -11,7 +11,7 @@ import {
 } from './types'
 import type { Config } from '.'
 
-import { PLUGIN_NAME, assertNeverReached, raise, ErrorMessageKey } from './utils'
+import { PLUGIN_NAME, raise, ErrorMessageKey } from './utils'
 
 declare module 'koishi' {
   interface Context {

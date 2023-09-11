@@ -185,10 +185,9 @@ async function remove(ctx: Context, session: Session<never, never>, query: BaseQ
   const clashes = await getToken(ctx, query)
   const { bid, name } = query
 
-  const rejectThisContext = rejectContext(session, query)
   switch (true) {
     // no leaks
-    case rejectThisContext: raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
+    case rejectContext(session, query): raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
     case !clashes.length: raise(ErrorMessage, session.text(VariantError.FoundNoToken))
     // TODO check if correct data has been saved
     default: await ctx.database.remove('otp', { bid, name })
@@ -201,12 +200,10 @@ async function save(ctx: Context, session: Session<never, never>, query: Provide
   const { bid, name, token, salt, tokenizer, method, threshold, step } = query
   const clashed = await getToken(ctx, { bid, name })
 
-  const rejectThisContext = rejectContext(session, query)
-
   const row = { step, threshold, name, token, method, updated_at: new Date(lockTime), created_at: new Date(lockTime) }
   switch (true) {
     // no leaks
-    case rejectThisContext: raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
+    case rejectContext(session, query): raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
     case !name || !token: raise(ErrorMessage, session.text(VariantError.MissingRequired))
     // safe context or with -p, will leak user holding a token now
     case !!clashed.length && !query.force: raise(ErrorMessage, session.text(VariantError.WillOverWriteOldToken))
@@ -225,11 +222,10 @@ async function save(ctx: Context, session: Session<never, never>, query: Provide
 
 async function read(ctx: Context, session: Session<never, never>, query: BaseQuery & Partial<Name> & Partial<Public>) {
   const { bid, name } = query
-  const rejectThisContext = rejectContext(session, query)
 
   switch (true) {
     // no leak of holding a token
-    case rejectThisContext: raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
+    case rejectContext(session, query): raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
 
     default: return getToken(ctx, { bid, name })
   }
