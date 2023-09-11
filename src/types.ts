@@ -6,13 +6,12 @@ export interface OTPDatabase {
   name: string
   method: OTPMethod
   token: string
-  step: number
-  threshold: number
+  threshold?: number  // this is for HOTP service
   algorithm: HMACAlgorithm
   digits: number
-  counter?: number
-  period?: number
-  initial?: number
+  counter?: number    // HOTP only
+  period?: number     // TOTP only
+  initial?: number    // TOTP only
   created_at: Date
   updated_at: Date
 }
@@ -23,18 +22,23 @@ export enum HMACAlgorithm {
   SHA512 = 'sha512'
 }
 
+export enum PASSAlgorithm {
+  AES128ECB = 'aes-128-ecb',
+  AES256ECB = 'aes-256-ecb',
+}
+
 export interface OTPConfig {
   algorithm?: HMACAlgorithm
   digits?: number
 }
 
 export interface TOTPConfig extends OTPConfig {
-  period: number
-  initial: number
+  period?: number
+  initial?: number
 }
 
 export interface HOTPConfig extends OTPConfig {
-  counter: number
+  counter?: number
 }
 
 type OTPMap = {

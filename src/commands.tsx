@@ -9,7 +9,7 @@ import {
   Method as OTPMethod
 } from './types'
 
-import { ErrorMessage, extractErrorMessage, raise } from './utils'
+import { ErrorMessage, cihper, extractErrorMessage, raise } from './utils'
 
 
 declare module 'koishi' {
@@ -28,13 +28,9 @@ export function apply(ctx: Context, options: Config) {
     name: 'string',
     token: 'text',
     method: 'string', // totp | hotp
-    step: {
-      type: 'integer',
-      initial: options.maxStep
-    },
     threshold: {
       type: 'integer',
-      initial: options.maxThreshold
+      initial: 0
     },
     algorithm: 'string',
     digits: 'integer',
@@ -64,18 +60,18 @@ export function apply(ctx: Context, options: Config) {
       }
 
       const codes = await Promise.all(otp.map(async otp => {
-        const { method, algorithm, digits, counter, period, initial } = mergeConfig(options, otp)
+        const { method, algorithm, digits, counter, period, initial } = otp
         if (period === undefined || counter === undefined || initial === undefined) return raise(ErrorMessage, session.text(VariantError.MissingRequired))
 
-        return await ctx.otp.generate(method, {
-          secret: otp.token,
+        const code = await ctx.otp.generate(method, {
+          secret: cihper(options.salt, options.algorithm).decrypt(otp.token), // decrypt token
           algorithm, digits, counter, period, initial
         })
           .then(coder => ({
             name: otp.name,
             code: coder.toString()
           }))
-
+        return code
       }))
 
       return <>
@@ -99,10 +95,11 @@ export function apply(ctx: Context, options: Config) {
       ] = input.args ?? []
 
       const { public: pub, force, method } = input.options ?? {};
+      const { maxStep, salt, algorithm } = options
 
       otpMethods.includes(method) || raise(ErrorMessage, session.text(VariantError.MethodNotSupported, [method]))
 
-      const overwritten = await save(ctx, session, mergeConfig(options, { bid, name, token, public: pub, force, method }))
+      const overwritten = await save(ctx, session, { algorithm, bid, name, token, public: pub, force, method, maxStep, salt })
       return (overwritten.length
         ? <>
           <p>translation: {VariantTranslationKey.SucceedReturnOldTokens}</p>
@@ -112,6 +109,7 @@ export function apply(ctx: Context, options: Config) {
     }))
 
   ctx.using(['qrcode'], (ctx) => {
+    if (!options.qrcode) return
     withPublicOption(withForceOption(cmd.subcommand('.qrcode <image>')))
       .userFields(['id'])
       .usage('通过二维码添加、（覆盖）令牌')
@@ -178,11 +176,22 @@ async function remove(ctx: Context, session: Session<never, never>, query: BaseQ
 }
 
 async function save(ctx: Context, session: Session<never, never>, query: Provided & Method & BaseQuery & Name & Token & Partial<Force> & Partial<Public>) {
-  const lockTime = Date.now()
-  const { bid, name, token, salt, tokenizer, method, threshold, step } = query
+  const { bid, name, token, salt, method, algorithm, maxStep, step } = query
+  const now = Date.now()
+  const confByMethod = method === OTPMethod.TOTP ? { period: step ?? maxStep, initial: Math.floor(now / 1000) }
+    : method === OTPMethod.HOTP ? { counter: step ?? maxStep / 10 }
+      : {}
   const clashed = await getToken(ctx, { bid, name })
 
-  const row = { step, threshold, name, token, method, updated_at: new Date(lockTime), created_at: new Date(lockTime) }
+
+  const row = {
+    bid,
+    name,
+    token: cihper(salt, algorithm).encrypt(token), // use salt to encrypt token
+    method,
+    updated_at: new Date(now),
+    created_at: new Date(now)
+  }
   switch (true) {
     // no leaks
     case rejectContext(session, query): raise(ErrorMessage, session.text(VariantError.NotInASafeContext))
@@ -196,7 +205,7 @@ async function save(ctx: Context, session: Session<never, never>, query: Provide
       break
     }
     default: {
-      await ctx.database.create('otp', { ...row, bid })
+      await ctx.database.create('otp', { ...row, ...confByMethod })
     }
   }
   return clashed
@@ -222,20 +231,6 @@ function withPublicOption<T1 extends keyof User, T2 extends keyof Channel, T3 ex
 }
 function withForceOption<T1 extends keyof User, T2 extends keyof Channel, T3 extends any[], T4 extends {}>(input: Command<T1, T2, T3, T4>) {
   return input.option('force', '-f')
-}
-
-
-function extractConfig(cfg: Config): Provided {
-  return {
-    step: cfg.maxStep,
-    threshold: cfg.maxStep,
-    salt: cfg.salt,
-    tokenizer: cfg.tokenizer
-  }
-}
-
-function mergeConfig<T>(cfg: Config, row: T) {
-  return Object.assign(extractConfig(cfg), row)
 }
 
 function rejectContext(session: Session<never, never>, { public: pub = false }: Partial<Public> = {}) {
@@ -264,7 +259,9 @@ interface BaseQuery {
   bid: number
 }
 
-interface Provided extends Pick<OTPDatabase, 'step' | 'threshold'>, Pick<Config, 'salt' | 'tokenizer'> { }
+interface Provided extends Pick<Config, 'salt' | 'algorithm' | 'maxStep'> {
+  step?: number
+}
 
 interface Name {
   name: string

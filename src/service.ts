@@ -57,11 +57,12 @@ export class OTPService extends Service {
     switch (method) {
       case 'totp': {
         const { period, initial } = options as TOTPConfig
+        if (!period || !initial) raise(ErrorMessageKey, VariantError.InvalidCounter)
         counter = Math.floor((Date.now() / 1000 - initial) / period)
         break
       }
       case 'hotp': {
-        counter = (options as HOTPConfig).counter
+        counter = (options as HOTPConfig).counter ?? raise(ErrorMessageKey, VariantError.InvalidCounter)
         break
       }
       default: raise(ErrorMessageKey, VariantError.MethodNotSupported, [method])
@@ -73,9 +74,8 @@ export class OTPService extends Service {
     // check counter
     if (!counter) raise(ErrorMessageKey, VariantError.InvalidCounter)
     if (counter < 0) raise(ErrorMessageKey, VariantError.CounterMustBePositive)
-    if (counter > this.config.maxStep) raise(ErrorMessageKey, VariantError.CounterMustLessThan, [this.config.maxStep, counter])
-
-    const hmac = createHmac(algorithm ?? 'sha1', secret)
+    if (counter > this.config.maxStep && method === 'hotp') raise(ErrorMessageKey, VariantError.CounterMustLessThan, [this.config.maxStep, counter])
+    const hmac = createHmac(algorithm || 'sha1', secret)
     hmac.update(Buffer.from(counter.toString(16).padStart(16, '0'), 'hex'))
     const digest = hmac.digest()
     const offset = digest[digest.byteLength - 1] & 0xf
@@ -84,7 +84,7 @@ export class OTPService extends Service {
       | (digest[offset + 2] & 0xff) << 8
       | (digest[offset + 3] & 0xff)
 
-    return code % (10 ** (digits ?? 6))
+    return (code % (10 ** (!digits || digits < 6 || digits > 8 ? method === 'totp' ? 6 : 8 : digits))).toString().padStart(digits || 6, '0')
   }
 
   static getCrypto() {

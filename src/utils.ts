@@ -1,4 +1,5 @@
-import { LanguageKey } from './types';
+import { createCipheriv, createDecipheriv, createHash } from 'node:crypto';
+import { LanguageKey, PASSAlgorithm } from './types';
 import { Argv, Session } from "koishi";
 
 export class ErrorMessage extends Error {
@@ -12,6 +13,28 @@ export class ErrorMessageKey extends Error {
   constructor(key: LanguageKey, input?: {} ) {
     super(key)
     input && (this.input = input)
+  }
+}
+
+export function cihper(key: string, algorithm: PASSAlgorithm = PASSAlgorithm.AES128ECB) {
+  const keyHash = createHash('md5').update(key).digest('hex')
+  // 128bit: 16 bytes, 256bit: 32 bytes
+  key = algorithm === PASSAlgorithm.AES128ECB ? keyHash.slice(9, 25) : keyHash
+  // the iv is the reverse of the key
+  const iv = key.split('').reverse().join('')
+  return {
+    encrypt: (data: string) => {
+      const cipher = createCipheriv(algorithm, key, null)
+      let encrypted = cipher.update(data, 'utf8', 'base64')
+      encrypted += cipher.final('base64')
+      return encrypted
+    },
+    decrypt: (data: string) => {
+      const decipher = createDecipheriv(algorithm, key, null)
+      let decrypted = decipher.update(data, 'base64', 'utf8')
+      decrypted += decipher.final('utf8')
+      return decrypted
+    }
   }
 }
 
