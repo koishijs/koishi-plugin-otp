@@ -1,7 +1,7 @@
-import { HOTPConfig, OTPModule, OTPOptions, TOTPConfig, VariantServiceError } from '../src/types'
+import { HOTPConfig, OTPMethod, OTPOptions, TOTPConfig, VariantServiceError } from '../src/types'
 import { OTPAlgorithm, OTPGenerator } from '../src/shared'
 
-export async function useOTP<M extends OTPModule>(module: M, options: OTPOptions<M>): Promise<string> {
+export async function useOTP<M extends OTPMethod>(module: M, options: OTPOptions<M>): Promise<string> {
     const algorMap = {
         'sha1': 'SHA-1',
         'sha256': 'SHA-256',
@@ -27,7 +27,7 @@ export async function useOTP<M extends OTPModule>(module: M, options: OTPOptions
     if (counter < 0) throw new Error(VariantServiceError.InvalidCounter)
     if (!counter) throw new Error(VariantServiceError.InvalidCounter)
     if (counter < 0) throw new Error(VariantServiceError.CounterMustBePositive)
-    if (counter > 10) throw new Error(VariantServiceError.CounterMustLessThan10)
+    if (counter > 10) throw new Error(VariantServiceError.CounterMustLessThan)
 
     return await OTPGenerator(secret, counter, digits, algorMap[algorithm ?? 'sha512'] as OTPAlgorithm)
 }
