@@ -6,6 +6,7 @@ import Page from './page.vue'
 declare module '@koishijs/plugin-console' {
   interface Events {
     'alive/interval'(): boolean
+    'otp/list'(): OTPDatabase[]
   }
 }
 
@@ -42,8 +43,9 @@ export async function useOTP<M extends OTPMethod>(module: M, options: OTPOptions
   // check counter
   if (counter < 0) throw new Error(VariantServiceError.InvalidCounter)
   if (!counter) throw new Error(VariantServiceError.InvalidCounter)
-  if (counter < 0) throw new Error(VariantServiceError.CounterMustBePositive)
-  if (counter > 10) throw new Error(VariantServiceError.CounterMustLessThan)
+  if (module === 'hotp' && counter > 10) throw new Error(VariantServiceError.CounterMustLessThan)
 
-  return await OTPGenerator(secret, counter, digits, algorMap[algorithm ?? 'sha512'] as OTPAlgorithm)
+  const code = await OTPGenerator(secret, counter, digits, algorMap[algorithm ?? 'sha512'] as OTPAlgorithm)
+  console.log(code)
+  return code
 }

@@ -11,6 +11,7 @@ export async function OTPGenerator(key: string,
 	const keygen = await crypto.subtle.importKey('raw', K, { name, hash }, false, ['sign'])
 	const digest = await crypto.subtle.sign({ name, hash }, keygen, C)
 	const offset = digest[digest.byteLength - 1] & 0xf
+	console.log(digest.byteLength)
 	const code = (digest[offset] & 0x7f) << 24
 		| (digest[offset + 1] & 0xff) << 16
 		| (digest[offset + 2] & 0xff) << 8

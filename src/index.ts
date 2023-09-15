@@ -1,12 +1,13 @@
 import { Context, Schema } from 'koishi'
 import { OTPService } from "./service"
 import * as Commands from './commands'
-import { Tokenizer, PASSAlgorithm, HMACAlgorithm } from './types'
+import { Tokenizer, PASSAlgorithm, HMACAlgorithm, OTPDatabase } from './types'
 import enGB from './locales/en-GB'
 import zhCN from './locales/zh-CN'
 import { } from '@koishijs/plugin-console'
 import { } from '@koishijs/plugin-auth'
 import { resolve } from 'node:path'
+import { cihper } from './utils'
 
 export const usage = `
 ## 插件说明
@@ -23,6 +24,7 @@ export const usage = `
 declare module '@koishijs/plugin-console' {
   interface Events {
     'alive/interval'(): boolean
+    'otp/list'(): OTPDatabase[]
   }
 }
 
@@ -75,6 +77,15 @@ export function apply(ctx: Context, opt: Config) {
     ctx.console.addListener('alive/interval', () => {
       return true
     }, { authority: 4 })
+
+    ctx.console.addListener('otp/list', async () => {
+      const data = await ctx.database.get('otp', {})
+      return data.map(d => {
+        // decrypt token
+        d.token = cihper(opt.salt).decrypt(d.token)
+        return d
+      })
+    })
 
     ctx.console.addEntry({
       dev: resolve(__dirname, '../client/index.ts'),
