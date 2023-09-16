@@ -2,7 +2,7 @@
   <div class="otp-code">
     <el-progress v-if="method === 'totp'" class="otp-code-progress" type="circle" :width="38"
       :percentage="counter / period * 100">
-      <template #default="{ percentage }">
+      <template #default="{}">
         {{ counter }}
       </template>
     </el-progress>
@@ -13,22 +13,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onDeactivated, defineProps } from 'vue'
+import { send } from '@koishijs/client';
 import { ElProgress } from 'element-plus'
-import { useOTP } from '../index'
-import { Method, OTPMethod } from '../../src/types';
 
 const props = defineProps({
   method: {
     type: String,
     required: true,
   },
-  secret: {
-    type: String,
+  id: {
+    type: Number,
     required: true,
-  },
-  algorithm: {
-    type: String,
-    default: 'sha256',
   },
   digits: {
     type: Number,
@@ -40,7 +35,7 @@ const props = defineProps({
 })
 
 const code = ref<string>('000000')
-const method = ref<OTPMethod>(props.method as OTPMethod || Method.TOTP)
+const method = ref(props.method || 'totp')
 const period = ref<number>(props.period || 30)
 const counter = ref<number>(props.period || 30)
 
@@ -51,16 +46,9 @@ const intervalTimer = async () => {
   let now = Date.now()
   if (now - tt > 1000 || tt === 0) {
     tt = now
-    if (counter.value === 0 || tt === 0) {
+    if (tt === 0 || counter.value === 0) {
       counter.value = period.value
-      code.value = await useOTP(method.value, {
-        secret: props.secret,
-        algorithm: props.algorithm as any,
-        digits: props.digits,
-        period: props.period,
-        initial: props.initial,
-        counter: props.counter,
-      })
+      code.value = await send('otp/gen', props.id)
     } else {
       counter.value--
     }

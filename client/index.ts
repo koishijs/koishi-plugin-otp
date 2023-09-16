@@ -7,6 +7,9 @@ declare module '@koishijs/plugin-console' {
   interface Events {
     'alive/interval'(): boolean
     'otp/list'(): OTPDatabase[]
+    'otp/gen'(id: number): Promise<string>
+    'otp/edit'(id: number, data: OTPDatabase): Promise<boolean>
+    'otp/remove'(id: number): Promise<void>
   }
 }
 

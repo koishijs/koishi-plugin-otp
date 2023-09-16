@@ -1,7 +1,7 @@
-import { Context, Schema } from 'koishi'
+import { Context, Schema, pick } from 'koishi'
 import { OTPService } from "./service"
 import * as Commands from './commands'
-import { Tokenizer, PASSAlgorithm, HMACAlgorithm, OTPDatabase } from './types'
+import { Tokenizer, PASSAlgorithm, HMACAlgorithm, OTPDatabase, OTPMethod, OTPOptions } from './types'
 import enGB from './locales/en-GB'
 import zhCN from './locales/zh-CN'
 import { } from '@koishijs/plugin-console'
@@ -24,7 +24,10 @@ export const usage = `
 declare module '@koishijs/plugin-console' {
   interface Events {
     'alive/interval'(): boolean
-    'otp/list'(): OTPDatabase[]
+    'otp/list'(): Promise<OTPDatabase[]>
+    'otp/gen'(id: number): Promise<string>
+    'otp/edit'(id: number, data: OTPDatabase): Promise<boolean>
+    'otp/remove'(id: number): Promise<void>
   }
 }
 
@@ -78,12 +81,23 @@ export function apply(ctx: Context, opt: Config) {
       return true
     }, { authority: 4 })
 
-    ctx.console.addListener('otp/list', async () => {
-      const data = await ctx.database.get('otp', {})
-      return data.map(d => {
-        // decrypt token
-        d.token = cihper(opt.salt).decrypt(d.token)
-        return d
+    ctx.console.addListener('otp/list', async () =>
+      await ctx.database.get('otp', {})
+    )
+
+    ctx.using(['otp'], (ctx) => {
+      ctx.console.addListener('otp/gen', async (id) => {
+        const [data] = await ctx.database.get('otp', { id })
+        const { method } = data
+        const { algorithm, digits, period, initial, counter, token } = data
+        return await ctx.otp.generate(method, {
+          algorithm,
+          secret: cihper(opt.salt).decrypt(token),
+          digits,
+          period,
+          initial,
+          counter,
+        })
       })
     })
 

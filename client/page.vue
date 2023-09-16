@@ -4,16 +4,19 @@
       <h2 v-if="!alive">Please make sure you have sufficient permissions (authority ≥ 4).</h2>
       <div v-else>
         <k-card>
-          <h4>令牌管理</h4>
+          <h4>Tokens</h4>
           <el-table :data="tokenTable" style="width: 100%;">
             <el-table-column label="ID" prop="id" />
             <el-table-column label="Name" prop="name" />
-            <el-table-column label="Method" prop="method" />
+            <el-table-column label="Method" prop="method">
+              <template #default="props">
+                {{ props.row.method.toUpperCase() }}
+              </template>
+            </el-table-column>
             <el-table-column label="Code" prop="code">
               <template #default="props">
-                <table-code :method="props.row.method" :secret="props.row.token" :algorithm="props.row.algorithm"
-                  :digits="props.row.digits" :period="props.row.period" :initial="props.row.initial"
-                  :counter="props.row.counter" />
+                <table-code :method="props.row.method" :id="props.row.id" :digits="props.row.digits"
+                  :period="props.row.period" :initial="props.row.initial" :counter="props.row.counter" />
               </template>
             </el-table-column>
             <el-table-column type="expand" lable="Info">
@@ -24,8 +27,15 @@
                   <p m="t-0 b-2">Updated At: {{ props.row.updated_at }}</p>
                 </div>
               </template>
-            </el-table-column>x
+            </el-table-column>
+            <el-table-column label="Edit">
+              <template #default="props">
+                <el-button type="primary" disabled @click="sender('edit', props.row.id)">Edit</el-button>
+                <el-button type="warning" disabled @click="sender('remove', props.row.id)">Remove</el-button>
+              </template>
+            </el-table-column>
           </el-table>
+          <el-button type="primary" disabled @click="sender('add')">Create</el-button>
         </k-card>
       </div>
     </div>
@@ -34,15 +44,19 @@
 
 <script setup lang="ts">
 import { send } from '@koishijs/client'
-import { ref, onMounted, onDeactivated } from 'vue'
-import { ElTable, ElTableColumn, ElProgress } from 'element-plus'
+import { ref } from 'vue'
+import { ElTable, ElTableColumn, ElButton } from 'element-plus'
 import TableCode from './components/tableCode.vue'
 import { OTPDatabase } from '../src/types'
-import { useOTP } from './index'
 
 const loading = ref(true)
 const alive = ref<boolean>()
 const tokenTable = ref<OTPDatabase[]>([])
+
+const sender = (activity: any, id?: number, data?) => {
+  // @ts-ignore
+  send(`otp/${activity}`, id, data)
+}
 
 send('alive/interval').then(data => {
   loading.value = false
