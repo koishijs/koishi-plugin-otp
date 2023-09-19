@@ -1,7 +1,10 @@
 <template>
   <k-layout>
     <div class="otp-layout">
-      <h2 v-if="!alive">Please make sure you have sufficient permissions (authority ≥ 4).</h2>
+      <div v-if="!alive">
+        <h2>SECURITY AUDIT: Please make sure you have sufficient permissions (authority ≥ 4).</h2>
+        <span>Install the auth plugin and set the authority of the user to 4 or higher.</span>
+      </div>
       <div v-else>
         <k-card>
           <h4>Tokens</h4>

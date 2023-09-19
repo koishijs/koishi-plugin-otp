@@ -1,21 +1,35 @@
 
 import { createHmac } from 'node:crypto'
 import { Context, Service } from 'koishi'
+import { } from '@koishijs/plugin-console'
+import { } from '@koishijs/plugin-auth'
 import {
   type HOTPConfig,
   type OTPMethod,
   type OTPOptions,
   type TOTPConfig,
   type Tokenizer,
-  VariantServiceError as VariantError
+  VariantServiceError as VariantError,
+  OTPDatabase
 } from './types'
 import type { Config } from '.'
 
-import { PLUGIN_NAME, raise, ErrorMessageKey } from './utils'
+import { PLUGIN_NAME, raise, ErrorMessageKey, cihper } from './utils'
+import { save } from './shared'
 
 declare module 'koishi' {
   interface Context {
     otp: OTPService
+  }
+}
+
+declare module '@koishijs/plugin-console' {
+  interface Events {
+    'otp/alive'(): boolean
+    'otp/list'(): Promise<OTPDatabase[]>
+    'otp/gen'(id: number): Promise<string>
+    'otp/edit'(id: number, data: OTPDatabase): Promise<OTPDatabase>
+    'otp/remove'(id: number): Promise<void>
   }
 }
 
@@ -24,6 +38,29 @@ export class OTPService extends Service {
 
   constructor(ctx: Context, private config: Config) {
     super(ctx, PLUGIN_NAME)
+    
+    if(config.manager) ctx.using(['console'], _ => {
+      _.console.addListener('otp/alive', () => {
+        return !!_.auth
+      }, { authority: 4 })
+
+      _.console.addListener('otp/list', async () => 
+        await ctx.database.get('otp', {}))
+
+      _.console.addListener('otp/gen', async (id) => {
+        const [data] = await ctx.database.get('otp', { id })
+        const { method } = data
+        const { algorithm, digits, period, initial, counter, token } = data
+        return await this.generate(method, {
+          algorithm,
+          secret: cihper(config.salt).decrypt(token),
+          digits,
+          period,
+          initial,
+          counter,
+        })
+      })
+    })
   }
 
   public createToken(tokenizer: Tokenizer, salt: string) {

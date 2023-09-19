@@ -1,13 +1,10 @@
-import { Context, Schema, pick } from 'koishi'
+import { Context, Schema } from 'koishi'
 import { OTPService } from "./service"
 import * as Commands from './commands'
-import { Tokenizer, PASSAlgorithm, HMACAlgorithm, OTPDatabase, OTPMethod, OTPOptions } from './types'
+import { Tokenizer, PASSAlgorithm, HMACAlgorithm } from './types'
 import enGB from './locales/en-GB'
 import zhCN from './locales/zh-CN'
-import { } from '@koishijs/plugin-console'
-import { } from '@koishijs/plugin-auth'
 import { resolve } from 'node:path'
-import { cihper } from './utils'
 
 export const usage = `
 ## 插件说明
@@ -20,16 +17,6 @@ export const usage = `
 - 使用随机字符串来作为存储密码 (salt) ，用于加密令牌以及认证令牌
 - 添加 Auth 插件，以保证 WebUI 有限度访问
 `
-
-declare module '@koishijs/plugin-console' {
-  interface Events {
-    'alive/interval'(): boolean
-    'otp/list'(): Promise<OTPDatabase[]>
-    'otp/gen'(id: number): Promise<string>
-    'otp/edit'(id: number, data: OTPDatabase): Promise<boolean>
-    'otp/remove'(id: number): Promise<void>
-  }
-}
 
 export interface Config {
   tokenizer: Tokenizer
@@ -77,30 +64,6 @@ export function apply(ctx: Context, opt: Config) {
   ctx.i18n.define('en-US', enGB)
 
   if (opt.manager) ctx.using(['console'], (ctx) => {
-    ctx.console.addListener('alive/interval', () => {
-      return true
-    }, { authority: 4 })
-
-    ctx.console.addListener('otp/list', async () =>
-      await ctx.database.get('otp', {})
-    )
-
-    ctx.using(['otp'], (ctx) => {
-      ctx.console.addListener('otp/gen', async (id) => {
-        const [data] = await ctx.database.get('otp', { id })
-        const { method } = data
-        const { algorithm, digits, period, initial, counter, token } = data
-        return await ctx.otp.generate(method, {
-          algorithm,
-          secret: cihper(opt.salt).decrypt(token),
-          digits,
-          period,
-          initial,
-          counter,
-        })
-      })
-    })
-
     ctx.console.addEntry({
       dev: resolve(__dirname, '../client/index.ts'),
       prod: resolve(__dirname, '../dist'),
