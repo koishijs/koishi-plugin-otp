@@ -21,7 +21,7 @@ declare module 'koishi' {
 
 const otpMethods = [OTPMethod.TOTP, OTPMethod.HOTP]
 
-export const using = ['database', 'otp']
+export const inject = ['database', 'otp']
 export function apply(ctx: Context, options: Config) {
   ctx.model.extend('otp', {
     id: 'unsigned',

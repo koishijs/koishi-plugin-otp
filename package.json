@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-otp",
   "description": "one time password",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "author": {
@@ -31,6 +31,7 @@
     "pub": "yakumo publish"
   },
   "koishi": {
+    "browser": true,
     "description": {
       "zh": "2FA(OTP) 可以用于二步认证的验证码服务，目前支持 TOTP、HOTP 算法。",
       "en": "2FA(OTP) can be used for two-step verification of verification code service, currently supports TOTP, HOTP algorithm.",
@@ -71,7 +72,7 @@
     "yakumo-version": "^0.3.4"
   },
   "peerDependencies": {
-    "koishi": "^4.12.1",
-    "@koishijs/plugin-console": "^5.11.0"
+    "koishi": "^4.15.3",
+    "@koishijs/plugin-console": "^5.17.1"
   }
 }

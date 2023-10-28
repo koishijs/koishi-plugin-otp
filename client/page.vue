@@ -62,11 +62,15 @@ const sender = (activity: any, id?: number, data?) => {
 }
 
 send('otp/alive').then(data => {
-  loading.value = false
-  alive.value = data
-  send('otp/list').then(data => {
-    tokenTable.value = data
-  })
+  if (process.env.KOISHI_ENV === 'browser') {
+    alive.value = true
+  } else {
+    loading.value = false
+    alive.value = data
+    send('otp/list').then(data => {
+      tokenTable.value = data
+    })
+  }
 })
 </script>
 

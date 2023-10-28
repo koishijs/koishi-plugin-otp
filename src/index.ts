@@ -15,7 +15,7 @@ export const usage = `
 
 为确保安全性，建议如下措施：
 - 使用随机字符串来作为存储密码 (salt) ，用于加密令牌以及认证令牌
-- 添加 Auth 插件，以保证 WebUI 有限度访问
+- 如果部署在公网环境，请添加 Auth 插件，以保证 WebUI 有限度访问
 `
 
 export interface Config {
@@ -36,8 +36,8 @@ export const Config: Schema<Config> = Schema.intersect([
       'uuid',
       'random',
       'timestamp']).default('uuid').description('令牌生成方式'),
-    salt: Schema.string().role('secret').description('存储密码（为保证账户安全性，请尽量使用复杂密码）').required(),
-    qrcode: Schema.boolean().default(false).description('[⚠ 实验性]是否使用二维码识别（需要 qrcode 服务）'),
+    salt: Schema.string().role('secret').description('存储密码（为保证账户安全性，请尽量使用复杂密码）').required().hidden(process.env.KOISHI_ENV === 'browser'),
+    qrcode: Schema.boolean().default(false).description('[⚠ 实验性]是否使用二维码识别（需要 qrcode 服务）').hidden(process.env.KOISHI_ENV === 'browser'),
     manager: Schema.boolean().default(false).description('允许在 WebUI 中管理令牌'),
     command: Schema.boolean().default(true).description('允许使用命令管理令牌'),
   }).description('基础配置'),
@@ -64,7 +64,13 @@ export function apply(ctx: Context, opt: Config) {
   ctx.i18n.define('en-US', enGB)
 
   if (opt.manager) ctx.using(['console'], (ctx) => {
-    ctx.console.addEntry({
+    ctx.console.addEntry(process.env.KOISHI_BASE ? [
+      process.env.KOISHI_BASE + '/dist/index.js',
+      process.env.KOISHI_BASE + '/dist/style.css',
+    ] : process.env.KOISHI_ENV === 'browser' ? [
+      // @ts-ignore
+      import.meta.url.replace(/\/src\/[^/]+$/, '/client/index.ts'),
+    ] : {
       dev: resolve(__dirname, '../client/index.ts'),
       prod: resolve(__dirname, '../dist'),
     })

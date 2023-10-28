@@ -57,10 +57,12 @@ const intervalTimer = async () => {
 }
 
 onMounted(async () => {
+  tt = 0 // GC
   intervalTimer()
 })
 
 onDeactivated(() => {
+  tt = 0 // GC
   cancelAnimationFrame(timer)
 })
 </script>
