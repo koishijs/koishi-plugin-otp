@@ -42,6 +42,7 @@ export function apply(ctx: Context, options: Config) {
     updated_at: 'date',
   }, {
     primary: ['id'],
+    aotuInc: true
     // unique: ['name', 'token'],
   })
 
